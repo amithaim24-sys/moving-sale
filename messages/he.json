@@ -1,0 +1,73 @@
+{
+  "app": {
+    "title": "מכירת מעבר דירה",
+    "tagline": "פריטים למכירה או לחלוקה לפני המעבר"
+  },
+  "nav": {
+    "browse": "עיון",
+    "myItems": "הפריטים שלי",
+    "newItem": "פריט חדש",
+    "profile": "פרופיל",
+    "admin": "ניהול",
+    "signIn": "התחברות",
+    "signOut": "התנתקות"
+  },
+  "filter": {
+    "all": "הכל",
+    "sell": "למכירה",
+    "give": "חינם",
+    "searchPlaceholder": "חיפוש פריטים..."
+  },
+  "item": {
+    "free": "חינם",
+    "ils": "₪{price}",
+    "status": {
+      "AVAILABLE": "זמין",
+      "RESERVED": "שמור",
+      "SOLD": "נמכר",
+      "HIDDEN": "מוסתר"
+    },
+    "type": { "SELL": "למכירה", "GIVE": "לחלוקה" },
+    "contactWhatsApp": "צור קשר ב-WhatsApp",
+    "noPhone": "המוכר עדיין לא הגדיר מספר WhatsApp",
+    "waMessage": "היי! מעוניין/ת בפריט \"{title}\" — {url}",
+    "by": "מאת {name}",
+    "noItems": "אין עדיין פריטים."
+  },
+  "form": {
+    "title": "כותרת",
+    "description": "תיאור",
+    "type": "סוג",
+    "price": "מחיר (₪)",
+    "priceHelp": "השאר ריק לפריטים חינם",
+    "status": "סטטוס",
+    "images": "תמונות",
+    "addImage": "הוספת תמונה",
+    "save": "שמירה",
+    "cancel": "ביטול",
+    "delete": "מחיקה",
+    "edit": "עריכה",
+    "create": "יצירת פריט",
+    "phone": "מספר WhatsApp (פורמט בינלאומי, לדוגמה +972501234567)",
+    "name": "שם תצוגה",
+    "saved": "נשמר",
+    "needPhone": "יש להוסיף מספר WhatsApp בפרופיל לפני פרסום פריטים."
+  },
+  "admin": {
+    "users": "משתמשים",
+    "items": "כל הפריטים",
+    "role": "תפקיד",
+    "promote": "הפוך למנהל",
+    "demote": "הסר ניהול",
+    "ban": "חסום",
+    "unban": "בטל חסימה",
+    "hide": "הסתר",
+    "show": "הצג"
+  },
+  "auth": {
+    "signInTitle": "התחברות למכירת מעבר דירה",
+    "signInGoogle": "המשך עם Google",
+    "signInBlurb": "התחבר/י עם חשבון Google כדי לפרסם פריטים."
+  },
+  "lang": { "en": "English", "he": "עברית" }
+}

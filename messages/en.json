@@ -1,0 +1,73 @@
+{
+  "app": {
+    "title": "Moving Sale",
+    "tagline": "Items for sale or to give away before the move"
+  },
+  "nav": {
+    "browse": "Browse",
+    "myItems": "My items",
+    "newItem": "New item",
+    "profile": "Profile",
+    "admin": "Admin",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
+  },
+  "filter": {
+    "all": "All",
+    "sell": "For sale",
+    "give": "Free",
+    "searchPlaceholder": "Search items..."
+  },
+  "item": {
+    "free": "Free",
+    "ils": "₪{price}",
+    "status": {
+      "AVAILABLE": "Available",
+      "RESERVED": "Reserved",
+      "SOLD": "Sold",
+      "HIDDEN": "Hidden"
+    },
+    "type": { "SELL": "For sale", "GIVE": "Giving away" },
+    "contactWhatsApp": "Contact on WhatsApp",
+    "noPhone": "Seller has not set up WhatsApp yet",
+    "waMessage": "Hi! I'm interested in your item \"{title}\" — {url}",
+    "by": "by {name}",
+    "noItems": "No items yet."
+  },
+  "form": {
+    "title": "Title",
+    "description": "Description",
+    "type": "Type",
+    "price": "Price (ILS)",
+    "priceHelp": "Leave empty for free items",
+    "status": "Status",
+    "images": "Photos",
+    "addImage": "Add photo",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create item",
+    "phone": "WhatsApp phone (international format, e.g. +972501234567)",
+    "name": "Display name",
+    "saved": "Saved",
+    "needPhone": "Please add your WhatsApp number in your profile before posting items."
+  },
+  "admin": {
+    "users": "Users",
+    "items": "All items",
+    "role": "Role",
+    "promote": "Make admin",
+    "demote": "Remove admin",
+    "ban": "Ban",
+    "unban": "Unban",
+    "hide": "Hide",
+    "show": "Show"
+  },
+  "auth": {
+    "signInTitle": "Sign in to Moving Sale",
+    "signInGoogle": "Continue with Google",
+    "signInBlurb": "Sign in with your Google account to post items."
+  },
+  "lang": { "en": "English", "he": "עברית" }
+}

@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Role: "USER" | "ADMIN"
+// ListingType: "SELL" | "GIVE"
+// ListingStatus: "AVAILABLE" | "RESERVED" | "SOLD" | "HIDDEN"
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  whatsappPhone String?
+  role          String    @default("USER")
+  banned        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  accounts Account[]
+  sessions Session[]
+  items    Item[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Item {
+  id          String   @id @default(cuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  type        String   // "SELL" | "GIVE"
+  priceIls    Int?
+  status      String   @default("AVAILABLE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  images      ItemImage[]
+
+  @@index([status, createdAt])
+  @@index([ownerId])
+}
+
+model ItemImage {
+  id                 String @id @default(cuid())
+  itemId             String
+  item               Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  cloudinaryPublicId String
+  url                String
+  sortOrder          Int    @default(0)
+}

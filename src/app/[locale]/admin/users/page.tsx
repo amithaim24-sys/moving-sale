@@ -1,0 +1,49 @@
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { requireAdmin } from "@/lib/guards";
+import { prisma } from "@/lib/prisma";
+import AdminUserRow from "./AdminUserRow";
+import type { Locale } from "@/i18n/config";
+
+export default async function AdminUsersPage({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("admin");
+  await requireAdmin();
+
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    select: { id: true, name: true, email: true, role: true, banned: true, _count: { select: { items: true } } },
+  });
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">{t("users")}</h1>
+      <div className="overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200">
+        <table className="min-w-full text-sm">
+          <thead className="bg-slate-50 text-start">
+            <tr>
+              <th className="px-3 py-2 text-start">Email</th>
+              <th className="px-3 py-2 text-start">Name</th>
+              <th className="px-3 py-2 text-start">{t("role")}</th>
+              <th className="px-3 py-2 text-start">Items</th>
+              <th className="px-3 py-2 text-start"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <AdminUserRow
+                key={u.id}
+                user={{ id: u.id, name: u.name, email: u.email, role: u.role as "USER" | "ADMIN", banned: u.banned, itemCount: u._count.items }}
+                labels={{ promote: t("promote"), demote: t("demote"), ban: t("ban"), unban: t("unban") }}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

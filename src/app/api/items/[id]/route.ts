@@ -1,0 +1,82 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { parseItemPayload } from "@/lib/validate";
+import { destroyImage } from "@/lib/cloudinary";
+
+async function loadOwned(id: string, userId: string, isAdmin: boolean) {
+  const item = await prisma.item.findUnique({
+    where: { id },
+    include: { images: true },
+  });
+  if (!item) return null;
+  if (!isAdmin && item.ownerId !== userId) return "forbidden" as const;
+  return item;
+}
+
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
+  const { id } = await ctx.params;
+  const found = await loadOwned(id, session.user.id, session.user.role === "ADMIN");
+  if (!found) return new NextResponse("Not found", { status: 404 });
+  if (found === "forbidden") return new NextResponse("Forbidden", { status: 403 });
+
+  let payload;
+  try {
+    payload = parseItemPayload(await req.json(), true);
+  } catch (e) {
+    return new NextResponse((e as Error).message, { status: 400 });
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.item.update({
+      where: { id },
+      data: {
+        ...(payload.title !== undefined ? { title: payload.title } : {}),
+        ...(payload.description !== undefined ? { description: payload.description } : {}),
+        ...(payload.type !== undefined ? { type: payload.type } : {}),
+        ...(payload.priceIls !== undefined ? { priceIls: payload.priceIls } : {}),
+        ...(payload.status !== undefined ? { status: payload.status } : {}),
+      },
+    });
+
+    if (payload.images) {
+      const incoming = new Set(payload.images.map((i) => i.cloudinaryPublicId));
+      const toDelete = found.images.filter((i) => !incoming.has(i.cloudinaryPublicId));
+      for (const img of toDelete) {
+        await tx.itemImage.delete({ where: { id: img.id } });
+        await destroyImage(img.cloudinaryPublicId);
+      }
+      const existingIds = new Set(found.images.map((i) => i.cloudinaryPublicId));
+      for (let idx = 0; idx < payload.images.length; idx++) {
+        const img = payload.images[idx];
+        if (existingIds.has(img.cloudinaryPublicId)) {
+          await tx.itemImage.updateMany({
+            where: { itemId: id, cloudinaryPublicId: img.cloudinaryPublicId },
+            data: { sortOrder: idx },
+          });
+        } else {
+          await tx.itemImage.create({
+            data: { itemId: id, cloudinaryPublicId: img.cloudinaryPublicId, url: img.url, sortOrder: idx },
+          });
+        }
+      }
+    }
+  });
+
+  return NextResponse.json({ ok: true });
+}
+
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
+  const { id } = await ctx.params;
+  const found = await loadOwned(id, session.user.id, session.user.role === "ADMIN");
+  if (!found) return new NextResponse("Not found", { status: 404 });
+  if (found === "forbidden") return new NextResponse("Forbidden", { status: 403 });
+
+  for (const img of found.images) await destroyImage(img.cloudinaryPublicId);
+  await prisma.item.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
+}
