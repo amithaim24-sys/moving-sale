@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export type UploadedImage = { cloudinaryPublicId: string; url: string };
 
@@ -16,6 +17,7 @@ export default function ItemImageUploader({
   label: string;
   addLabel: string;
 }) {
+  const t = useTranslations("form");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,22 +65,57 @@ export default function ItemImageUploader({
     onChange(value.filter((_, i) => i !== idx));
   }
 
+  function makeMain(idx: number) {
+    if (idx === 0) return;
+    const next = [...value];
+    const [picked] = next.splice(idx, 1);
+    next.unshift(picked);
+    onChange(next);
+  }
+
   return (
     <div>
       <label className="label">{label}</label>
+      <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">{t("mainHint")}</p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-        {value.map((img, i) => (
-          <div key={img.cloudinaryPublicId} className="relative aspect-square overflow-hidden rounded-lg bg-slate-100">
-            <Image src={img.url} alt="" fill className="object-cover" sizes="120px" />
-            <button
-              type="button"
-              onClick={() => remove(i)}
-              className="absolute end-1 top-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white"
+        {value.map((img, i) => {
+          const isMain = i === 0;
+          return (
+            <div
+              key={img.cloudinaryPublicId}
+              className={`relative aspect-square overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800 ${
+                isMain ? "ring-2 ring-brand" : ""
+              }`}
             >
-              ✕
-            </button>
-          </div>
-        ))}
+              <Image src={img.url} alt="" fill className="object-cover" sizes="120px" />
+              {isMain && (
+                <span className="absolute start-1 top-1 rounded-full bg-brand px-2 py-0.5 text-[10px] font-semibold text-white">
+                  {t("main")}
+                </span>
+              )}
+              {!isMain && (
+                <button
+                  type="button"
+                  onClick={() => makeMain(i)}
+                  title={t("setMain")}
+                  aria-label={t("setMain")}
+                  className="absolute start-1 top-1 rounded-full bg-black/60 px-1.5 py-0.5 text-xs text-white hover:bg-black/80"
+                >
+                  ★
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                title={t("delete")}
+                aria-label={t("delete")}
+                className="absolute end-1 top-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white hover:bg-black/80"
+              >
+                ✕
+              </button>
+            </div>
+          );
+        })}
         <label className="flex aspect-square cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-slate-300 text-sm text-slate-500 hover:bg-slate-50">
           {busy ? "..." : `+ ${addLabel}`}
           <input
