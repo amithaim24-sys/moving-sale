@@ -18,9 +18,9 @@ export default function ItemCard({ item, locale }: { item: ItemCardData; locale:
   const itemPath = `/${locale}/items/${item.id}`;
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:shadow-md">
+    <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:shadow-md dark:bg-slate-900 dark:ring-slate-800">
       <Link href={itemPath} className="block">
-        <div className="relative aspect-square w-full bg-slate-100">
+        <div className="relative aspect-square w-full bg-slate-100 dark:bg-slate-800">
           {cover ? (
             <Image
               src={cover}
@@ -36,7 +36,7 @@ export default function ItemCard({ item, locale }: { item: ItemCardData; locale:
         <div className="px-3 pt-3">
           <div className="truncate text-sm font-medium">{item.title}</div>
           {item.owner.city && (
-            <div className="truncate text-xs text-slate-500">{item.owner.city}</div>
+            <div className="truncate text-xs text-slate-500 dark:text-slate-400">{item.owner.city}</div>
           )}
         </div>
       </Link>

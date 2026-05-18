@@ -78,7 +78,7 @@ export default function ItemForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-5 rounded-2xl bg-white p-6 shadow ring-1 ring-slate-200">
+    <form onSubmit={submit} className="space-y-5 rounded-2xl bg-white p-6 shadow ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
       {!hasPhone && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
           <span>{t("form.needPhone")}</span>

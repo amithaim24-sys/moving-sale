@@ -22,7 +22,7 @@ export default async function AdminUsersPage({
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("users")}</h1>
-      <div className="overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200">
+      <div className="overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50 text-start">
             <tr>

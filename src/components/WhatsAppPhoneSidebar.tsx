@@ -44,7 +44,7 @@ export default function WhatsAppPhoneSidebar({
         className={`fixed inset-0 z-40 bg-black/40 transition-opacity ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
       />
       <aside
-        className={`fixed top-0 z-50 h-full w-80 max-w-[90vw] bg-white shadow-xl transition-transform end-0 ${
+        className={`fixed top-0 z-50 h-full w-80 max-w-[90vw] bg-white shadow-xl transition-transform end-0 dark:bg-slate-900 ${
           open ? "translate-x-0" : "translate-x-full rtl:-translate-x-full"
         }`}
       >

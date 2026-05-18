@@ -38,7 +38,7 @@ export default function ProfileForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4 rounded-2xl bg-white p-6 shadow ring-1 ring-slate-200">
+    <form onSubmit={submit} className="space-y-4 rounded-2xl bg-white p-6 shadow ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
       <div>
         <label className="label">{labels.name}</label>
         <input className="field" value={name} onChange={(e) => setName(e.target.value)} />

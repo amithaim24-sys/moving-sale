@@ -32,7 +32,7 @@ export default async function AdminItemsPage({
           {t("admin.users")}
         </Link>
       </div>
-      <ul className="divide-y rounded-2xl bg-white ring-1 ring-slate-200">
+      <ul className="divide-y rounded-2xl bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 dark:divide-slate-800">
         {items.map((item) => (
           <li key={item.id} className="flex items-center gap-4 p-4">
             <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
