@@ -22,14 +22,20 @@ export default async function ItemDetailPage({
     where: { id },
     include: {
       images: { orderBy: { sortOrder: "asc" } },
-      owner: { select: { name: true, whatsappPhone: true, banned: true, city: true } },
+      owner: { select: { id: true, name: true, whatsappPhone: true, banned: true, city: true } },
     },
   });
 
   if (!item) notFound();
-  if (item.status === "HIDDEN" || item.owner.banned) redirect(`/${locale}`);
 
   const viewer = await getOptionalUser();
+  const isOwner = !!viewer && viewer.id === item.owner.id;
+  const isAdmin = !!viewer && viewer.role === "ADMIN";
+
+  // Hidden listings and listings owned by banned users are only visible to admins.
+  if ((item.status === "HIDDEN" || item.owner.banned) && !isAdmin) redirect(`/${locale}`);
+  // Drafts are owner-only (admins may also view for moderation).
+  if (item.status === "DRAFT" && !isOwner && !isAdmin) redirect(`/${locale}`);
   const liked = viewer
     ? !!(await prisma.itemLike.findUnique({
         where: { userId_itemId: { userId: viewer.id, itemId: item.id } },

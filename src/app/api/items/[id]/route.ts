@@ -9,24 +9,39 @@ async function loadOwned(id: string, userId: string, isAdmin: boolean) {
     where: { id },
     include: { images: true },
   });
+  // Return 404 in both not-found and not-owned cases to avoid an ID-existence oracle.
   if (!item) return null;
-  if (!isAdmin && item.ownerId !== userId) return "forbidden" as const;
+  if (!isAdmin && item.ownerId !== userId) return null;
   return item;
 }
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
+  if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
   const { id } = await ctx.params;
   const found = await loadOwned(id, session.user.id, session.user.role === "ADMIN");
   if (!found) return new NextResponse("Not found", { status: 404 });
-  if (found === "forbidden") return new NextResponse("Forbidden", { status: 403 });
 
   let payload;
   try {
     payload = parseItemPayload(await req.json(), true);
   } catch (e) {
     return new NextResponse((e as Error).message, { status: 400 });
+  }
+
+  // If the owner is trying to publish (status != DRAFT) they must have a WhatsApp phone.
+  // Admins moderating someone else's item are exempt from the phone gate.
+  if (payload.status && payload.status !== "DRAFT" && found.ownerId === session.user.id) {
+    const me = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { whatsappPhone: true, banned: true },
+    });
+    if (!me || me.banned) return new NextResponse("Forbidden", { status: 403 });
+    if (!me.whatsappPhone) {
+      // Silently downgrade to DRAFT rather than rejecting.
+      payload.status = "DRAFT";
+    }
   }
 
   await prisma.$transaction(async (tx) => {
@@ -72,10 +87,10 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
+  if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
   const { id } = await ctx.params;
   const found = await loadOwned(id, session.user.id, session.user.role === "ADMIN");
   if (!found) return new NextResponse("Not found", { status: 404 });
-  if (found === "forbidden") return new NextResponse("Forbidden", { status: 403 });
 
   for (const img of found.images) await destroyImage(img.cloudinaryPublicId);
   await prisma.item.delete({ where: { id } });

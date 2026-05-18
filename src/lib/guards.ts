@@ -15,6 +15,10 @@ export async function requireUser() {
     const locale = await currentLocale();
     redirect(`/${locale}/signin`);
   }
+  if (session.user.banned) {
+    const locale = await currentLocale();
+    redirect(`/${locale}/banned`);
+  }
   return session.user;
 }
 

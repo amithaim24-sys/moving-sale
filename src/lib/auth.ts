@@ -19,6 +19,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         (session.user as { id?: string }).id = user.id;
         (session.user as { role?: Role }).role = (user as { role?: Role }).role ?? "USER";
+        (session.user as { banned?: boolean }).banned = (user as { banned?: boolean }).banned ?? false;
         (session.user as { whatsappPhone?: string | null }).whatsappPhone =
           (user as { whatsappPhone?: string | null }).whatsappPhone ?? null;
       }
@@ -27,9 +28,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async createUser({ user }) {
-      // Promote the very first registered user to ADMIN.
-      const count = await prisma.user.count();
-      if (count === 1 && user.id) {
+      // Auto-promote users whose email is in BOOTSTRAP_ADMIN_EMAILS (comma-separated).
+      const allowlist = (process.env.BOOTSTRAP_ADMIN_EMAILS ?? "")
+        .split(",")
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+      if (user.id && user.email && allowlist.includes(user.email.toLowerCase())) {
         await prisma.user.update({ where: { id: user.id }, data: { role: "ADMIN" } });
       }
     },
@@ -44,6 +48,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       role: Role;
+      banned: boolean;
       whatsappPhone?: string | null;
     };
   }

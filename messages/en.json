@@ -78,6 +78,10 @@
     "hide": "Hide",
     "show": "Show"
   },
+  "banned": {
+    "title": "Your account has been suspended",
+    "body": "Please contact the site administrator if you believe this is a mistake."
+  },
   "auth": {
     "signInTitle": "Sign in to Moving Sale",
     "signInGoogle": "Continue with Google",

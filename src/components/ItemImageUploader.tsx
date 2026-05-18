@@ -24,19 +24,25 @@ export default function ItemImageUploader({
     setBusy(true);
     setError(null);
     try {
-      const sigRes = await fetch("/api/upload/sign", { method: "POST" });
-      if (!sigRes.ok) throw new Error("Failed to sign upload");
-      const { timestamp, signature, apiKey, cloudName, folder } = await sigRes.json();
-
       const uploaded: UploadedImage[] = [];
       for (const file of Array.from(files)) {
+        if (file.size > 8 * 1024 * 1024) throw new Error(`${file.name}: max 8 MB`);
+        // Get a fresh single-use signature for each file (unique public_id per upload).
+        const sigRes = await fetch("/api/upload/sign", { method: "POST" });
+        if (!sigRes.ok) throw new Error("Failed to sign upload");
+        const sig = await sigRes.json();
+
         const form = new FormData();
         form.append("file", file);
-        form.append("api_key", apiKey);
-        form.append("timestamp", String(timestamp));
-        form.append("signature", signature);
-        form.append("folder", folder);
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        form.append("api_key", sig.apiKey);
+        form.append("timestamp", String(sig.timestamp));
+        form.append("signature", sig.signature);
+        form.append("folder", sig.folder);
+        form.append("public_id", sig.public_id);
+        form.append("allowed_formats", sig.allowed_formats);
+        form.append("overwrite", sig.overwrite);
+        form.append("resource_type", sig.resource_type);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
           method: "POST",
           body: form,
         });

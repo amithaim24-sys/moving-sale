@@ -58,10 +58,17 @@ export function parseItemPayload(raw: unknown, partial = false): Partial<ItemPay
 
   if (b.images !== undefined) {
     if (!Array.isArray(b.images)) throw new Error("Bad images");
+    const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const folder = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_FOLDER || "moving-sale";
+    if (!cloud) throw new Error("Cloudinary not configured");
+    const urlPrefix = `https://res.cloudinary.com/${cloud}/image/upload/`;
     out.images = b.images.slice(0, 10).map((img) => {
       const x = img as { cloudinaryPublicId?: unknown; url?: unknown };
       if (typeof x.cloudinaryPublicId !== "string" || typeof x.url !== "string")
         throw new Error("Bad image entry");
+      if (!x.url.startsWith(urlPrefix)) throw new Error("Image URL must be in our Cloudinary account");
+      if (!x.cloudinaryPublicId.startsWith(`${folder}/`))
+        throw new Error("Image publicId must be inside our upload folder");
       return { cloudinaryPublicId: x.cloudinaryPublicId, url: x.url };
     });
   }

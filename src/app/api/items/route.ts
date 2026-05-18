@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     where: { id: session.user.id },
     select: { whatsappPhone: true, banned: true },
   });
-  if (!me || me.banned) return new NextResponse("Forbidden", { status: 403 });
+  if (!me || me.banned || session.user.banned) return new NextResponse("Forbidden", { status: 403 });
 
   let payload;
   try {
