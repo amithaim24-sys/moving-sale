@@ -12,15 +12,14 @@ const ALLOWED_FORMATS = "jpg,jpeg,png,webp,heic,heif";
 
 export function signUpload(folder: string) {
   const timestamp = Math.floor(Date.now() / 1000);
-  // Pre-allocate the public_id so the client cannot collide with existing assets.
+  // public_id encodes the folder path; we don't pass `folder` separately because
+  // Cloudinary would prepend it again and the signature would mismatch.
   const public_id = `${folder}/${randomUUID()}`;
   const paramsToSign = {
     timestamp,
-    folder,
     public_id,
     allowed_formats: ALLOWED_FORMATS,
     overwrite: "false",
-    resource_type: "image",
   };
   const signature = cloudinary.utils.api_sign_request(
     paramsToSign,

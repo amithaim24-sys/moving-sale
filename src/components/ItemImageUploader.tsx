@@ -37,16 +37,17 @@ export default function ItemImageUploader({
         form.append("api_key", sig.apiKey);
         form.append("timestamp", String(sig.timestamp));
         form.append("signature", sig.signature);
-        form.append("folder", sig.folder);
         form.append("public_id", sig.public_id);
         form.append("allowed_formats", sig.allowed_formats);
         form.append("overwrite", sig.overwrite);
-        form.append("resource_type", sig.resource_type);
         const res = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
           method: "POST",
           body: form,
         });
-        if (!res.ok) throw new Error("Upload failed");
+        if (!res.ok) {
+          const detail = await res.text().catch(() => "");
+          throw new Error(`Upload failed: ${detail.slice(0, 200) || res.statusText}`);
+        }
         const data = await res.json();
         uploaded.push({ cloudinaryPublicId: data.public_id, url: data.secure_url });
       }
