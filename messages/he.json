@@ -30,6 +30,7 @@
     },
     "type": { "SELL": "למכירה", "GIVE": "לחלוקה" },
     "contactWhatsApp": "צור קשר ב-WhatsApp",
+    "waMessageLabel": "הודעת WhatsApp",
     "noPhone": "המוכר עדיין לא הגדיר מספר WhatsApp",
     "waMessage": "היי! מעוניין/ת בפריט \"{title}\" — {url}",
     "by": "מאת {name}",

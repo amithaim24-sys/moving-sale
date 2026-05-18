@@ -30,6 +30,7 @@
     },
     "type": { "SELL": "For sale", "GIVE": "Giving away" },
     "contactWhatsApp": "Contact on WhatsApp",
+    "waMessageLabel": "WhatsApp message",
     "noPhone": "Seller has not set up WhatsApp yet",
     "waMessage": "Hi! I'm interested in your item \"{title}\" — {url}",
     "by": "by {name}",
