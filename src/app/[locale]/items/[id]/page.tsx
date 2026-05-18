@@ -86,9 +86,10 @@ export default async function ItemDetailPage({
             <PriceOrFreeBadge type={item.type as "SELL" | "GIVE"} priceIls={item.priceIls} />
           </div>
         </div>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           {t("item.by", { name: item.owner.name ?? "—" })}
           {item.owner.city ? ` · ${item.owner.city}` : ""}
+          {item.condition ? ` · ${t(`item.condition.${item.condition as "NEW"}`)}` : ""}
         </p>
         {item.description && (
           <p className="whitespace-pre-wrap text-slate-800 dark:text-slate-200">{item.description}</p>

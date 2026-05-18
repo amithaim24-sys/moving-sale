@@ -5,12 +5,13 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import ItemImageUploader, { type UploadedImage } from "./ItemImageUploader";
 import WhatsAppPhoneSidebar from "./WhatsAppPhoneSidebar";
-import type { ListingStatus, ListingType } from "@/lib/types";
+import type { ItemCondition, ListingStatus, ListingType } from "@/lib/types";
 
 export type ItemFormValues = {
   title: string;
   description: string;
   type: ListingType;
+  condition: ItemCondition | null;
   priceIls: number | null;
   status: ListingStatus;
   images: UploadedImage[];
@@ -47,6 +48,7 @@ export default function ItemForm({
       title: values.title,
       description: values.description,
       type: values.type,
+      condition: values.condition,
       priceIls: values.type === "GIVE" ? null : values.priceIls,
       status: forceStatus ?? values.status,
       images: values.images,
@@ -131,6 +133,21 @@ export default function ItemForm({
           >
             <option value="SELL">{t("item.type.SELL")}</option>
             <option value="GIVE">{t("item.type.GIVE")}</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">{t("form.condition")}</label>
+          <select
+            className="field"
+            value={values.condition ?? ""}
+            onChange={(e) =>
+              set("condition", e.target.value === "" ? null : (e.target.value as ItemCondition))
+            }
+          >
+            <option value="">—</option>
+            <option value="NEW">{t("item.condition.NEW")}</option>
+            <option value="LIKE_NEW">{t("item.condition.LIKE_NEW")}</option>
+            <option value="USED">{t("item.condition.USED")}</option>
           </select>
         </div>
         <div>

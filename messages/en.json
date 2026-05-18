@@ -30,6 +30,7 @@
       "HIDDEN": "Hidden"
     },
     "type": { "SELL": "For sale", "GIVE": "Giving away" },
+    "condition": { "NEW": "New", "LIKE_NEW": "Used – like new", "USED": "Used" },
     "contactWhatsApp": "Contact on WhatsApp",
     "waMessageLabel": "WhatsApp message",
     "noPhone": "Seller has not set up WhatsApp yet",
@@ -44,6 +45,7 @@
     "title": "Title",
     "description": "Description",
     "type": "Type",
+    "condition": "Condition",
     "price": "Price (ILS)",
     "priceHelp": "Leave empty for free items",
     "status": "Status",

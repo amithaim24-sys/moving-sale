@@ -30,6 +30,7 @@
       "HIDDEN": "מוסתר"
     },
     "type": { "SELL": "למכירה", "GIVE": "לחלוקה" },
+    "condition": { "NEW": "חדש", "LIKE_NEW": "כמו חדש", "USED": "משומש" },
     "contactWhatsApp": "צור קשר ב-WhatsApp",
     "waMessageLabel": "הודעת WhatsApp",
     "noPhone": "המוכר עדיין לא הגדיר מספר WhatsApp",
@@ -44,6 +45,7 @@
     "title": "כותרת",
     "description": "תיאור",
     "type": "סוג",
+    "condition": "מצב",
     "price": "מחיר (₪)",
     "priceHelp": "השאר ריק לפריטים חינם",
     "status": "סטטוס",

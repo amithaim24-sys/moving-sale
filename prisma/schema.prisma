@@ -71,6 +71,7 @@ model Item {
   title       String
   description String
   type        String   // "SELL" | "GIVE"
+  condition   String?  // "NEW" | "LIKE_NEW" | "USED"
   priceIls    Int?
   status      String   @default("AVAILABLE")
   createdAt   DateTime @default(now())

@@ -36,6 +36,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         ...(payload.title !== undefined ? { title: payload.title } : {}),
         ...(payload.description !== undefined ? { description: payload.description } : {}),
         ...(payload.type !== undefined ? { type: payload.type } : {}),
+        ...(payload.condition !== undefined ? { condition: payload.condition } : {}),
         ...(payload.priceIls !== undefined ? { priceIls: payload.priceIls } : {}),
         ...(payload.status !== undefined ? { status: payload.status } : {}),
       },

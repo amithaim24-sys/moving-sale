@@ -1,9 +1,10 @@
-import type { ListingStatus, ListingType } from "./types";
+import type { ItemCondition, ListingStatus, ListingType } from "./types";
 
 export type ItemPayload = {
   title: string;
   description: string;
   type: ListingType;
+  condition: ItemCondition | null;
   priceIls: number | null;
   status?: ListingStatus;
   images?: { cloudinaryPublicId: string; url: string }[];
@@ -38,6 +39,16 @@ export function parseItemPayload(raw: unknown, partial = false): Partial<ItemPay
     }
   }
   if (out.type === "GIVE") out.priceIls = null;
+
+  if (b.condition !== undefined) {
+    if (b.condition === null || b.condition === "") {
+      out.condition = null;
+    } else if (["NEW", "LIKE_NEW", "USED"].includes(b.condition as string)) {
+      out.condition = b.condition as ItemCondition;
+    } else {
+      throw new Error("Bad condition");
+    }
+  }
 
   if (b.status !== undefined) {
     if (!["DRAFT", "AVAILABLE", "RESERVED", "SOLD", "HIDDEN"].includes(b.status as string))
