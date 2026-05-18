@@ -22,6 +22,7 @@
     "free": "חינם",
     "ils": "₪{price}",
     "status": {
+      "DRAFT": "טיוטה",
       "AVAILABLE": "זמין",
       "RESERVED": "שמור",
       "SOLD": "נמכר",
@@ -44,14 +45,17 @@
     "images": "תמונות",
     "addImage": "הוספת תמונה",
     "save": "שמירה",
+    "saveDraft": "שמירה כטיוטה",
     "cancel": "ביטול",
     "delete": "מחיקה",
     "edit": "עריכה",
     "create": "יצירת פריט",
-    "phone": "מספר WhatsApp (פורמט בינלאומי, לדוגמה +972501234567)",
+    "phone": "מספר WhatsApp",
+    "phoneHelp": "פורמט בינלאומי. ברירת מחדל +972 (ישראל).",
+    "addPhone": "הוסף/י מספר WhatsApp",
     "name": "שם תצוגה",
     "saved": "נשמר",
-    "needPhone": "יש להוסיף מספר WhatsApp בפרופיל לפני פרסום פריטים."
+    "needPhone": "יש להוסיף מספר WhatsApp כדי לפרסם. אפשר לשמור כטיוטה בינתיים."
   },
   "admin": {
     "users": "משתמשים",

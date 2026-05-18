@@ -22,6 +22,7 @@
     "free": "Free",
     "ils": "₪{price}",
     "status": {
+      "DRAFT": "Draft",
       "AVAILABLE": "Available",
       "RESERVED": "Reserved",
       "SOLD": "Sold",
@@ -44,14 +45,17 @@
     "images": "Photos",
     "addImage": "Add photo",
     "save": "Save",
+    "saveDraft": "Save as draft",
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create item",
-    "phone": "WhatsApp phone (international format, e.g. +972501234567)",
+    "phone": "WhatsApp number",
+    "phoneHelp": "International format. Default is +972 (Israel).",
+    "addPhone": "Add WhatsApp number",
     "name": "Display name",
     "saved": "Saved",
-    "needPhone": "Please add your WhatsApp number in your profile before posting items."
+    "needPhone": "Add your WhatsApp number to publish. You can still save as a draft."
   },
   "admin": {
     "users": "Users",

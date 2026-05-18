@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DEFAULT_PHONE_PREFIX } from "@/lib/types";
 
 export default function ProfileForm({
   initial,
@@ -10,7 +11,11 @@ export default function ProfileForm({
   labels: { name: string; phone: string; save: string; saved: string };
 }) {
   const [name, setName] = useState(initial.name);
-  const [phone, setPhone] = useState(initial.whatsappPhone);
+  const [phone, setPhone] = useState(
+    initial.whatsappPhone && initial.whatsappPhone.length > 0
+      ? initial.whatsappPhone
+      : DEFAULT_PHONE_PREFIX,
+  );
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   async function submit(e: React.FormEvent) {
@@ -35,6 +40,7 @@ export default function ProfileForm({
         <input
           className="field"
           inputMode="tel"
+          dir="ltr"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="+972501234567"

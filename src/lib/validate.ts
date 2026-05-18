@@ -40,7 +40,7 @@ export function parseItemPayload(raw: unknown, partial = false): Partial<ItemPay
   if (out.type === "GIVE") out.priceIls = null;
 
   if (b.status !== undefined) {
-    if (!["AVAILABLE", "RESERVED", "SOLD", "HIDDEN"].includes(b.status as string))
+    if (!["DRAFT", "AVAILABLE", "RESERVED", "SOLD", "HIDDEN"].includes(b.status as string))
       throw new Error("Bad status");
     out.status = b.status as ListingStatus;
   }

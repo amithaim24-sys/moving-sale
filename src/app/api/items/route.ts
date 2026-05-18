@@ -12,7 +12,6 @@ export async function POST(req: Request) {
     select: { whatsappPhone: true, banned: true },
   });
   if (!me || me.banned) return new NextResponse("Forbidden", { status: 403 });
-  if (!me.whatsappPhone) return new NextResponse("Set WhatsApp phone first", { status: 400 });
 
   let payload;
   try {
@@ -21,6 +20,12 @@ export async function POST(req: Request) {
     return new NextResponse((e as Error).message, { status: 400 });
   }
 
+  const requestedStatus = payload.status;
+  const status =
+    requestedStatus === "DRAFT" || !me.whatsappPhone
+      ? "DRAFT"
+      : (requestedStatus ?? "AVAILABLE");
+
   const item = await prisma.item.create({
     data: {
       ownerId: session.user.id,
@@ -28,7 +33,7 @@ export async function POST(req: Request) {
       description: payload.description!,
       type: payload.type!,
       priceIls: payload.priceIls ?? null,
-      status: "AVAILABLE",
+      status,
       images: payload.images
         ? {
             create: payload.images.map((img, idx) => ({
