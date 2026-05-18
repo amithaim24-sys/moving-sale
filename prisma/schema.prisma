@@ -73,6 +73,7 @@ model Item {
   type        String   // "SELL" | "GIVE"
   condition   String?  // "NEW" | "LIKE_NEW" | "USED"
   priceIls    Int?
+  previousPriceIls Int?
   status      String   @default("AVAILABLE")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

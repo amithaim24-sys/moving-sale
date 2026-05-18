@@ -45,6 +45,12 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
 
   await prisma.$transaction(async (tx) => {
+    // Track previous price so we can show a strikethrough when the seller cuts the price.
+    let previousPriceIls: number | null | undefined = undefined;
+    if (payload.priceIls !== undefined && payload.priceIls !== found.priceIls) {
+      previousPriceIls = found.priceIls;
+    }
+
     await tx.item.update({
       where: { id },
       data: {
@@ -53,6 +59,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         ...(payload.type !== undefined ? { type: payload.type } : {}),
         ...(payload.condition !== undefined ? { condition: payload.condition } : {}),
         ...(payload.priceIls !== undefined ? { priceIls: payload.priceIls } : {}),
+        ...(previousPriceIls !== undefined ? { previousPriceIls } : {}),
         ...(payload.status !== undefined ? { status: payload.status } : {}),
       },
     });

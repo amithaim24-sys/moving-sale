@@ -46,7 +46,11 @@ export default async function MyItemsPage({
                   {t(`item.status.${item.status as "AVAILABLE"}`)}
                 </div>
               </div>
-              <PriceOrFreeBadge type={item.type as "SELL" | "GIVE"} priceIls={item.priceIls} />
+              <PriceOrFreeBadge
+                type={item.type as "SELL" | "GIVE"}
+                priceIls={item.priceIls}
+                previousPriceIls={item.previousPriceIls}
+              />
               <Link href={`/${locale}/my/items/${item.id}/edit`} className="btn-secondary text-sm">
                 {t("form.edit")}
               </Link>

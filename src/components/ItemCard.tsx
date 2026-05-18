@@ -10,6 +10,7 @@ export type ItemCardData = {
   title: string;
   type: ListingType;
   priceIls: number | null;
+  previousPriceIls: number | null;
   images: { url: string }[];
   owner: { name: string | null; whatsappPhone: string | null; city: string | null };
 };
@@ -60,7 +61,11 @@ export default function ItemCard({
         </div>
       </Link>
       <div className="flex items-center justify-between gap-2 p-3 pt-2">
-        <PriceOrFreeBadge type={item.type} priceIls={item.priceIls} />
+        <PriceOrFreeBadge
+          type={item.type}
+          priceIls={item.priceIls}
+          previousPriceIls={item.previousPriceIls}
+        />
         <WhatsAppIconButton
           phone={item.owner.whatsappPhone}
           title={item.title}

@@ -89,7 +89,11 @@ export default async function ItemDetailPage({
               locale={locale}
               size="lg"
             />
-            <PriceOrFreeBadge type={item.type as "SELL" | "GIVE"} priceIls={item.priceIls} />
+            <PriceOrFreeBadge
+              type={item.type as "SELL" | "GIVE"}
+              priceIls={item.priceIls}
+              previousPriceIls={item.previousPriceIls}
+            />
           </div>
         </div>
         <p className="text-sm text-slate-500 dark:text-slate-400">

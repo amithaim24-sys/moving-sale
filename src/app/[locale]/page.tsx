@@ -108,6 +108,7 @@ export default async function CatalogPage({
                 title: item.title,
                 type: item.type as "SELL" | "GIVE",
                 priceIls: item.priceIls,
+                previousPriceIls: item.previousPriceIls,
                 images: item.images,
                 owner: item.owner,
               }}
