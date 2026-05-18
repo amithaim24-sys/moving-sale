@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import ItemCard from "@/components/ItemCard";
+import { getOptionalUser } from "@/lib/guards";
 import type { Locale } from "@/i18n/config";
 
 type SearchParams = Promise<{ type?: string; q?: string }>;
@@ -17,6 +18,8 @@ export default async function CatalogPage({
   setRequestLocale(locale);
   const { type, q } = await searchParams;
   const t = await getTranslations();
+
+  const user = await getOptionalUser();
 
   const items = await prisma.item.findMany({
     where: {
@@ -37,6 +40,17 @@ export default async function CatalogPage({
     },
     orderBy: { createdAt: "desc" },
   });
+
+  const likedIds = user
+    ? new Set(
+        (
+          await prisma.itemLike.findMany({
+            where: { userId: user.id, itemId: { in: items.map((i) => i.id) } },
+            select: { itemId: true },
+          })
+        ).map((l) => l.itemId),
+      )
+    : new Set<string>();
 
   return (
     <div className="space-y-6">
@@ -87,6 +101,8 @@ export default async function CatalogPage({
             <ItemCard
               key={item.id}
               locale={locale}
+              liked={likedIds.has(item.id)}
+              isLoggedIn={!!user}
               item={{
                 id: item.id,
                 title: item.title,

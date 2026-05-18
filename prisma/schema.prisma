@@ -26,6 +26,7 @@ model User {
   accounts Account[]
   sessions Session[]
   items    Item[]
+  likes    ItemLike[]
 }
 
 model Account {
@@ -75,9 +76,23 @@ model Item {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   images      ItemImage[]
+  likes       ItemLike[]
 
   @@index([status, createdAt])
   @@index([ownerId])
+}
+
+model ItemLike {
+  id        String   @id @default(cuid())
+  userId    String
+  itemId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId])
+  @@index([userId, createdAt])
 }
 
 model ItemImage {

@@ -7,6 +7,7 @@
     "browse": "Browse",
     "myItems": "My items",
     "newItem": "New item",
+    "likes": "Saved",
     "profile": "Profile",
     "admin": "Admin",
     "signIn": "Sign in",
@@ -34,7 +35,10 @@
     "noPhone": "Seller has not set up WhatsApp yet",
     "waMessage": "Hi! I'm interested in your item \"{title}\" — {url}",
     "by": "by {name}",
-    "noItems": "No items yet."
+    "noItems": "No items yet.",
+    "noLikes": "You have not saved any items yet.",
+    "like": "Save for later",
+    "unlike": "Remove from saved"
   },
   "form": {
     "title": "Title",

@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import PriceOrFreeBadge from "./PriceOrFreeBadge";
 import WhatsAppIconButton from "./WhatsAppIconButton";
+import LikeButton from "./LikeButton";
 import type { ListingType } from "@/lib/types";
 
 export type ItemCardData = {
@@ -13,12 +14,30 @@ export type ItemCardData = {
   owner: { name: string | null; whatsappPhone: string | null; city: string | null };
 };
 
-export default function ItemCard({ item, locale }: { item: ItemCardData; locale: string }) {
+export default function ItemCard({
+  item,
+  locale,
+  liked,
+  isLoggedIn,
+}: {
+  item: ItemCardData;
+  locale: string;
+  liked: boolean;
+  isLoggedIn: boolean;
+}) {
   const cover = item.images[0]?.url;
   const itemPath = `/${locale}/items/${item.id}`;
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:shadow-md dark:bg-slate-900 dark:ring-slate-800">
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:shadow-md dark:bg-slate-900 dark:ring-slate-800">
+      <div className="absolute end-2 top-2 z-10">
+        <LikeButton
+          itemId={item.id}
+          initiallyLiked={liked}
+          isLoggedIn={isLoggedIn}
+          locale={locale}
+        />
+      </div>
       <Link href={itemPath} className="block">
         <div className="relative aspect-square w-full bg-slate-100 dark:bg-slate-800">
           {cover ? (

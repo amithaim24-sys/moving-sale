@@ -5,6 +5,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import PriceOrFreeBadge from "@/components/PriceOrFreeBadge";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import LikeButton from "@/components/LikeButton";
+import { getOptionalUser } from "@/lib/guards";
 import type { Locale } from "@/i18n/config";
 
 export default async function ItemDetailPage({
@@ -26,6 +28,14 @@ export default async function ItemDetailPage({
 
   if (!item) notFound();
   if (item.status === "HIDDEN" || item.owner.banned) redirect(`/${locale}`);
+
+  const viewer = await getOptionalUser();
+  const liked = viewer
+    ? !!(await prisma.itemLike.findUnique({
+        where: { userId_itemId: { userId: viewer.id, itemId: item.id } },
+        select: { id: true },
+      }))
+    : false;
 
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
@@ -65,7 +75,16 @@ export default async function ItemDetailPage({
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-2xl font-bold">{item.title}</h1>
-          <PriceOrFreeBadge type={item.type as "SELL" | "GIVE"} priceIls={item.priceIls} />
+          <div className="flex items-center gap-2">
+            <LikeButton
+              itemId={item.id}
+              initiallyLiked={liked}
+              isLoggedIn={!!viewer}
+              locale={locale}
+              size="lg"
+            />
+            <PriceOrFreeBadge type={item.type as "SELL" | "GIVE"} priceIls={item.priceIls} />
+          </div>
         </div>
         <p className="text-sm text-slate-500">
           {t("item.by", { name: item.owner.name ?? "—" })}

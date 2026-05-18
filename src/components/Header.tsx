@@ -25,6 +25,9 @@ export default async function Header({ locale }: { locale: Locale }) {
               <Link href={`/${locale}/my/items`} className="hover:underline">
                 {t("nav.myItems")}
               </Link>
+              <Link href={`/${locale}/my/likes`} className="hover:underline">
+                {t("nav.likes")}
+              </Link>
               <Link href={`/${locale}/my/profile`} className="hover:underline">
                 {t("nav.profile")}
               </Link>
