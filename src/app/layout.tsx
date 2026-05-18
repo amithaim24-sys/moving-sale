@@ -5,4 +5,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return children;
 }
 
-export const metadata = { title: "Moving Sale" };
+export const metadata = { title: "We move and you can earn from it" };
