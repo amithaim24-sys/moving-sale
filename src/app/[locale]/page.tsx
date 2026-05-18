@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import ItemCard from "@/components/ItemCard";
@@ -36,9 +37,14 @@ export default async function CatalogPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{t("app.title")}</h1>
-        <p className="text-slate-600">{t("app.tagline")}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{t("app.title")}</h1>
+          <p className="text-slate-600">{t("app.tagline")}</p>
+        </div>
+        <Link href={`/${locale}/my/items/new`} className="btn-primary">
+          + {t("nav.newItem")}
+        </Link>
       </div>
 
       <form className="flex flex-wrap items-center gap-2" action={`/${locale}`}>
