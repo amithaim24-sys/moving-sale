@@ -46,6 +46,7 @@ export default async function AdminItemsPage({
               </Link>
               <div className="text-xs text-slate-500">
                 {item.owner.email} · {t(`item.status.${item.status as "AVAILABLE"}`)}
+                {" · "}👁 {t("item.viewsCount", { count: item.viewCount })}
               </div>
             </div>
             <AdminItemActions

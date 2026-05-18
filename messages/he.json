@@ -36,6 +36,7 @@
     "noPhone": "המוכר עדיין לא הגדיר מספר WhatsApp",
     "waMessage": "היי! מעוניין/ת בפריט \"{title}\" — {url}",
     "by": "מאת {name}",
+    "viewsCount": "{count, plural, =0 {אין צפיות עדיין} one {צפייה אחת} two {# צפיות} other {# צפיות}}",
     "noItems": "אין עדיין פריטים.",
     "noLikes": "עדיין לא שמרת פריטים.",
     "like": "שמירה למועדפים",

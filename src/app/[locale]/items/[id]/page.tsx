@@ -36,6 +36,14 @@ export default async function ItemDetailPage({
   if ((item.status === "HIDDEN" || item.owner.banned) && !isAdmin) redirect(`/${locale}`);
   // Drafts are owner-only (admins may also view for moderation).
   if (item.status === "DRAFT" && !isOwner && !isAdmin) redirect(`/${locale}`);
+
+  // Count public views. Skip owner and admin to keep the metric meaningful.
+  if (!isOwner && !isAdmin && item.status === "AVAILABLE") {
+    prisma.item
+      .update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } })
+      .catch(() => {});
+  }
+
   const liked = viewer
     ? !!(await prisma.itemLike.findUnique({
         where: { userId_itemId: { userId: viewer.id, itemId: item.id } },
@@ -101,6 +109,11 @@ export default async function ItemDetailPage({
           {item.owner.city ? ` · ${item.owner.city}` : ""}
           {item.condition ? ` · ${t(`item.condition.${item.condition as "NEW"}`)}` : ""}
         </p>
+        {(isOwner || isAdmin) && (
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            👁 {t("item.viewsCount", { count: item.viewCount })}
+          </p>
+        )}
         {item.description && (
           <p className="whitespace-pre-wrap text-slate-800 dark:text-slate-200">{item.description}</p>
         )}

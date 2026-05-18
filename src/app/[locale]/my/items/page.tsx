@@ -44,6 +44,7 @@ export default async function MyItemsPage({
                 <div className="truncate font-medium">{item.title}</div>
                 <div className="text-xs text-slate-500">
                   {t(`item.status.${item.status as "AVAILABLE"}`)}
+                  {" · "}👁 {t("item.viewsCount", { count: item.viewCount })}
                 </div>
               </div>
               <PriceOrFreeBadge
