@@ -6,8 +6,9 @@ export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
 
-  const body = (await req.json()) as { name?: string; whatsappPhone?: string };
+  const body = (await req.json()) as { name?: string; whatsappPhone?: string; city?: string };
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 80) || null : undefined;
+  const city = typeof body.city === "string" ? body.city.trim().slice(0, 80) || null : undefined;
   const rawPhone = typeof body.whatsappPhone === "string" ? body.whatsappPhone.trim() : undefined;
 
   let phone: string | null | undefined = undefined;
@@ -25,7 +26,11 @@ export async function PATCH(req: Request) {
 
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { ...(name !== undefined ? { name } : {}), ...(phone !== undefined ? { whatsappPhone: phone } : {}) },
+    data: {
+      ...(name !== undefined ? { name } : {}),
+      ...(city !== undefined ? { city } : {}),
+      ...(phone !== undefined ? { whatsappPhone: phone } : {}),
+    },
   });
   return NextResponse.json({ ok: true });
 }

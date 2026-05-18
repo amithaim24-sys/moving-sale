@@ -20,7 +20,7 @@ export default async function ItemDetailPage({
     where: { id },
     include: {
       images: { orderBy: { sortOrder: "asc" } },
-      owner: { select: { name: true, whatsappPhone: true, banned: true } },
+      owner: { select: { name: true, whatsappPhone: true, banned: true, city: true } },
     },
   });
 
@@ -69,6 +69,7 @@ export default async function ItemDetailPage({
         </div>
         <p className="text-sm text-slate-500">
           {t("item.by", { name: item.owner.name ?? "—" })}
+          {item.owner.city ? ` · ${item.owner.city}` : ""}
         </p>
         <p className="whitespace-pre-wrap text-slate-800">{item.description}</p>
 

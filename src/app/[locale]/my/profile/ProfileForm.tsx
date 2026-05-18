@@ -7,10 +7,18 @@ export default function ProfileForm({
   initial,
   labels,
 }: {
-  initial: { name: string; whatsappPhone: string };
-  labels: { name: string; phone: string; save: string; saved: string };
+  initial: { name: string; whatsappPhone: string; city: string };
+  labels: {
+    name: string;
+    phone: string;
+    city: string;
+    cityPlaceholder: string;
+    save: string;
+    saved: string;
+  };
 }) {
   const [name, setName] = useState(initial.name);
+  const [city, setCity] = useState(initial.city);
   const [phone, setPhone] = useState(
     initial.whatsappPhone && initial.whatsappPhone.length > 0
       ? initial.whatsappPhone
@@ -24,7 +32,7 @@ export default function ProfileForm({
     const res = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, whatsappPhone: phone }),
+      body: JSON.stringify({ name, whatsappPhone: phone, city }),
     });
     setStatus(res.ok ? "saved" : "error");
   }
@@ -34,6 +42,15 @@ export default function ProfileForm({
       <div>
         <label className="label">{labels.name}</label>
         <input className="field" value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+      <div>
+        <label className="label">{labels.city}</label>
+        <input
+          className="field"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder={labels.cityPlaceholder}
+        />
       </div>
       <div>
         <label className="label">{labels.phone}</label>

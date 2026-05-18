@@ -31,7 +31,10 @@ export default async function CatalogPage({
           }
         : {}),
     },
-    include: { images: { orderBy: { sortOrder: "asc" }, take: 1 } },
+    include: {
+      images: { orderBy: { sortOrder: "asc" }, take: 1 },
+      owner: { select: { name: true, whatsappPhone: true, city: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -90,6 +93,7 @@ export default async function CatalogPage({
                 type: item.type as "SELL" | "GIVE",
                 priceIls: item.priceIls,
                 images: item.images,
+                owner: item.owner,
               }}
             />
           ))}

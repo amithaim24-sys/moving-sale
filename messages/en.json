@@ -54,6 +54,8 @@
     "phoneHelp": "International format. Default is +972 (Israel).",
     "addPhone": "Add WhatsApp number",
     "name": "Display name",
+    "city": "City / area",
+    "cityPlaceholder": "e.g. Tel Aviv, Ramat Gan",
     "saved": "Saved",
     "needPhone": "Add your WhatsApp number to publish. You can still save as a draft."
   },
