@@ -37,6 +37,7 @@ export default async function CatalogPage({
     include: {
       images: { orderBy: { sortOrder: "asc" }, take: 1 },
       owner: { select: { name: true, whatsappPhone: true, city: true } },
+      _count: { select: { images: true } },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -110,6 +111,7 @@ export default async function CatalogPage({
                 priceIls: item.priceIls,
                 previousPriceIls: item.previousPriceIls,
                 images: item.images,
+                imageCount: item._count.images,
                 owner: item.owner,
               }}
             />

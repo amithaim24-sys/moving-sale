@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -6,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import PriceOrFreeBadge from "@/components/PriceOrFreeBadge";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import LikeButton from "@/components/LikeButton";
+import ItemGallery from "@/components/ItemGallery";
 import { getOptionalUser } from "@/lib/guards";
 import type { Locale } from "@/i18n/config";
 
@@ -58,32 +58,11 @@ export default async function ItemDetailPage({
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
-      <div className="space-y-3">
-        {item.images.length > 0 ? (
-          <>
-            <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
-              <Image
-                src={item.images[0].url}
-                alt={item.title}
-                fill
-                sizes="(max-width:768px) 100vw, 50vw"
-                className="object-cover"
-                priority
-              />
-            </div>
-            {item.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {item.images.slice(1).map((img) => (
-                  <div key={img.id} className="relative aspect-square overflow-hidden rounded-lg bg-slate-100">
-                    <Image src={img.url} alt="" fill sizes="120px" className="object-cover" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="flex aspect-square items-center justify-center rounded-2xl bg-slate-100 text-slate-400">—</div>
-        )}
+      <div>
+        <ItemGallery
+          images={item.images.map((i) => ({ id: i.id, url: i.url }))}
+          title={item.title}
+        />
       </div>
 
       <div className="space-y-4">

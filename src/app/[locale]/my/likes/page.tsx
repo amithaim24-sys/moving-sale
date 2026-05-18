@@ -22,6 +22,7 @@ export default async function MyLikesPage({
         include: {
           images: { orderBy: { sortOrder: "asc" }, take: 1 },
           owner: { select: { name: true, whatsappPhone: true, city: true } },
+          _count: { select: { images: true } },
         },
       },
     },
@@ -49,6 +50,7 @@ export default async function MyLikesPage({
                 priceIls: item.priceIls,
                 previousPriceIls: item.previousPriceIls,
                 images: item.images,
+                imageCount: item._count.images,
                 owner: item.owner,
               }}
             />

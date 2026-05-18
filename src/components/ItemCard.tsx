@@ -12,6 +12,7 @@ export type ItemCardData = {
   priceIls: number | null;
   previousPriceIls: number | null;
   images: { url: string }[];
+  imageCount: number;
   owner: { name: string | null; whatsappPhone: string | null; city: string | null };
 };
 
@@ -51,6 +52,14 @@ export default function ItemCard({
             />
           ) : (
             <div className="flex h-full items-center justify-center text-slate-400">—</div>
+          )}
+          {item.imageCount > 1 && (
+            <span className="absolute end-2 bottom-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true">
+                <path d="M4 7h3l2-2h6l2 2h3a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2zm8 11a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" />
+              </svg>
+              {item.imageCount}
+            </span>
           )}
         </div>
         <div className="px-3 pt-3">
