@@ -50,6 +50,7 @@
     "images": "Photos",
     "addImage": "Add photo",
     "save": "Save",
+    "optional": "optional",
     "saveDraft": "Save as draft",
     "cancel": "Cancel",
     "delete": "Delete",

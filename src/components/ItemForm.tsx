@@ -110,9 +110,10 @@ export default function ItemForm({
       </div>
 
       <div>
-        <label className="label">{t("form.description")}</label>
+        <label className="label">
+          {t("form.description")} <span className="text-xs text-slate-400">({t("form.optional")})</span>
+        </label>
         <textarea
-          required
           rows={4}
           className="field"
           value={values.description}

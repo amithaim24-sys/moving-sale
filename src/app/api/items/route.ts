@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     data: {
       ownerId: session.user.id,
       title: payload.title!,
-      description: payload.description!,
+      description: payload.description ?? "",
       type: payload.type!,
       priceIls: payload.priceIls ?? null,
       status,

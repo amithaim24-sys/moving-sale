@@ -20,9 +20,9 @@ export function parseItemPayload(raw: unknown, partial = false): Partial<ItemPay
   } else if (!partial) throw new Error("Title required");
 
   if (b.description !== undefined) {
-    if (typeof b.description !== "string") throw new Error("Description required");
+    if (typeof b.description !== "string") throw new Error("Bad description");
     out.description = b.description.trim().slice(0, 4000);
-  } else if (!partial) throw new Error("Description required");
+  }
 
   if (b.type !== undefined) {
     if (b.type !== "SELL" && b.type !== "GIVE") throw new Error("Bad type");

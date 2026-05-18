@@ -90,7 +90,9 @@ export default async function ItemDetailPage({
           {t("item.by", { name: item.owner.name ?? "—" })}
           {item.owner.city ? ` · ${item.owner.city}` : ""}
         </p>
-        <p className="whitespace-pre-wrap text-slate-800">{item.description}</p>
+        {item.description && (
+          <p className="whitespace-pre-wrap text-slate-800 dark:text-slate-200">{item.description}</p>
+        )}
 
         <div className="sticky bottom-2 md:static">
           <WhatsAppButton phone={item.owner.whatsappPhone} title={item.title} itemUrl={itemUrl} />
