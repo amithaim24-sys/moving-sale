@@ -75,9 +75,10 @@ export default async function CatalogPage({
         </Link>
       </div>
 
-      {/* Sticky filter + search bar (mobile-friendly) */}
+      {/* Search + filter bar. Sticky on desktop only; on mobile it just scrolls
+          normally so iOS Safari's address-bar shenanigans don't pull it around. */}
       <form
-        className="sticky top-14 z-20 -mx-3 flex flex-col gap-2 border-b border-slate-200 bg-slate-50/95 px-3 py-2 backdrop-blur sm:-mx-4 sm:px-4 dark:border-slate-800 dark:bg-slate-950/95"
+        className="flex flex-col gap-2 md:sticky md:top-14 md:z-20 md:bg-slate-50/95 md:py-2 md:backdrop-blur md:dark:bg-slate-950/95"
         action={`/${locale}`}
       >
         <input
@@ -85,9 +86,9 @@ export default async function CatalogPage({
           name="q"
           defaultValue={q ?? ""}
           placeholder={t("filter.searchPlaceholder")}
-          className="field text-base"
+          className="field"
         />
-        <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {filterOptions.map((opt) => {
             const active = (type ?? "") === opt.key;
             const href = `/${locale}?${new URLSearchParams({
