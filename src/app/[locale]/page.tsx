@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import ItemCard from "@/components/ItemCard";
+import EmptyState from "@/components/EmptyState";
 import { getOptionalUser } from "@/lib/guards";
 import type { Locale } from "@/i18n/config";
 
@@ -53,51 +54,72 @@ export default async function CatalogPage({
       )
     : new Set<string>();
 
+  const filterOptions = [
+    { key: "", label: t("filter.all") },
+    { key: "SELL", label: t("filter.sell") },
+    { key: "GIVE", label: t("filter.give") },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">{t("app.title")}</h1>
-          <p className="text-slate-600">{t("app.tagline")}</p>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-bold sm:text-3xl">{t("app.title")}</h1>
+          <p className="text-sm text-slate-600 dark:text-slate-400">{t("app.tagline")}</p>
         </div>
-        <Link href={`/${locale}/my/items/new`} className="btn-primary">
+        <Link
+          href={`/${locale}/my/items/new`}
+          className="btn-primary hidden whitespace-nowrap sm:inline-flex"
+        >
           + {t("nav.newItem")}
         </Link>
       </div>
 
-      <form className="flex flex-wrap items-center gap-2" action={`/${locale}`}>
-        <div className="flex rounded-lg border bg-white p-1 text-sm">
-          {[
-            { key: "", label: t("filter.all") },
-            { key: "SELL", label: t("filter.sell") },
-            { key: "GIVE", label: t("filter.give") },
-          ].map((opt) => {
+      {/* Sticky filter + search bar (mobile-friendly) */}
+      <form
+        className="sticky top-14 z-20 -mx-3 flex flex-col gap-2 border-b border-slate-200 bg-slate-50/95 px-3 py-2 backdrop-blur sm:-mx-4 sm:px-4 dark:border-slate-800 dark:bg-slate-950/95"
+        action={`/${locale}`}
+      >
+        <input
+          type="text"
+          name="q"
+          defaultValue={q ?? ""}
+          placeholder={t("filter.searchPlaceholder")}
+          className="field text-base"
+        />
+        <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {filterOptions.map((opt) => {
             const active = (type ?? "") === opt.key;
+            const href = `/${locale}?${new URLSearchParams({
+              ...(opt.key ? { type: opt.key } : {}),
+              ...(q ? { q } : {}),
+            }).toString()}`;
             return (
               <a
                 key={opt.key}
-                href={`/${locale}?${new URLSearchParams({ ...(opt.key ? { type: opt.key } : {}), ...(q ? { q } : {}) }).toString()}`}
-                className={`px-3 py-1 rounded ${active ? "bg-brand text-white" : "text-slate-600 hover:bg-slate-100"}`}
+                href={href}
+                className={`shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+                  active
+                    ? "border-brand bg-brand text-white"
+                    : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                }`}
               >
                 {opt.label}
               </a>
             );
           })}
         </div>
-        <input
-          type="text"
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder={t("filter.searchPlaceholder")}
-          className="field flex-1 min-w-[200px]"
-        />
-        {type && <input type="hidden" name="type" value={type} />}
       </form>
 
       {items.length === 0 ? (
-        <p className="text-slate-500">{t("item.noItems")}</p>
+        <EmptyState
+          emoji="📦"
+          title={t("item.noItems")}
+          description={t("item.noItemsHint")}
+          cta={user ? { href: `/${locale}/my/items/new`, label: t("nav.newItem") } : undefined}
+        />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
           {items.map((item) => (
             <ItemCard
               key={item.id}

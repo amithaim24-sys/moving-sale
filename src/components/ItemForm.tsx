@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import ItemImageUploader, { type UploadedImage } from "./ItemImageUploader";
 import WhatsAppPhoneSidebar from "./WhatsAppPhoneSidebar";
+import Spinner from "./Spinner";
+import { useToast } from "./Toaster";
 import type { ItemCondition, ListingStatus, ListingType } from "@/lib/types";
 
 export type ItemFormValues = {
@@ -30,6 +32,7 @@ export default function ItemForm({
 }) {
   const t = useTranslations();
   const router = useRouter();
+  const toast = useToast();
   const [values, setValues] = useState<ItemFormValues>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,10 +62,13 @@ export default function ItemForm({
       body: JSON.stringify(payload),
     });
     if (!res.ok) {
-      setError((await res.text()) || "Error");
+      const msg = (await res.text()) || "Error";
+      setError(msg);
+      toast.show(msg, "error");
       setBusy(false);
       return;
     }
+    toast.show(t("form.saved"));
     router.push(`/${locale}/my/items`);
     router.refresh();
   }
@@ -105,9 +111,11 @@ export default function ItemForm({
         <label className="label">{t("form.title")}</label>
         <input
           required
+          autoFocus={!itemId}
           className="field"
           value={values.title}
           onChange={(e) => set("title", e.target.value)}
+          placeholder={t("form.titlePlaceholder")}
         />
       </div>
 
@@ -154,12 +162,13 @@ export default function ItemForm({
           <label className="label">{t("form.price")}</label>
           <input
             type="number"
+            inputMode="numeric"
             min={0}
             disabled={values.type === "GIVE"}
-            className="field disabled:bg-slate-100"
+            className="field disabled:bg-slate-100 dark:disabled:bg-slate-900"
             value={values.priceIls ?? ""}
             onChange={(e) => set("priceIls", e.target.value === "" ? null : Number(e.target.value))}
-            placeholder={values.type === "GIVE" ? t("item.free") : ""}
+            placeholder={values.type === "GIVE" ? t("item.free") : "100"}
           />
           <p className="mt-1 text-xs text-slate-500">{t("form.priceHelp")}</p>
         </div>
@@ -186,7 +195,8 @@ export default function ItemForm({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
-          <button disabled={busy || !hasPhone} className="btn-primary">
+          <button disabled={busy || !hasPhone} className="btn-primary disabled:opacity-60">
+            {busy && <Spinner />}
             {t("form.save")}
           </button>
           {!itemId && (
@@ -194,14 +204,15 @@ export default function ItemForm({
               type="button"
               onClick={submitDraft}
               disabled={busy}
-              className="btn-secondary"
+              className="btn-secondary disabled:opacity-60"
             >
+              {busy && <Spinner />}
               {t("form.saveDraft")}
             </button>
           )}
         </div>
         {itemId && (
-          <button type="button" onClick={remove} className="btn-danger">
+          <button type="button" onClick={remove} disabled={busy} className="btn-danger disabled:opacity-60">
             {t("form.delete")}
           </button>
         )}

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { DEFAULT_PHONE_PREFIX } from "@/lib/types";
+import Spinner from "@/components/Spinner";
+import { useToast } from "@/components/Toaster";
 
 export default function ProfileForm({
   initial,
@@ -17,6 +19,7 @@ export default function ProfileForm({
     saved: string;
   };
 }) {
+  const toast = useToast();
   const [name, setName] = useState(initial.name);
   const [city, setCity] = useState(initial.city);
   const [phone, setPhone] = useState(
@@ -35,6 +38,7 @@ export default function ProfileForm({
       body: JSON.stringify({ name, whatsappPhone: phone, city }),
     });
     setStatus(res.ok ? "saved" : "error");
+    toast.show(res.ok ? labels.saved : "Error", res.ok ? "success" : "error");
   }
 
   return (
@@ -64,10 +68,11 @@ export default function ProfileForm({
         />
       </div>
       <div className="flex items-center gap-3">
-        <button className="btn-primary" disabled={status === "saving"}>
+        <button className="btn-primary disabled:opacity-60" disabled={status === "saving"}>
+          {status === "saving" && <Spinner />}
           {labels.save}
         </button>
-        {status === "saved" && <span className="text-sm text-emerald-700">{labels.saved} ✓</span>}
+        {status === "saved" && <span className="text-sm text-emerald-700 dark:text-emerald-400">{labels.saved} ✓</span>}
         {status === "error" && <span className="text-sm text-red-600">Error</span>}
       </div>
     </form>

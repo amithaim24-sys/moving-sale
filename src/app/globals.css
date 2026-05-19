@@ -20,5 +20,5 @@ input, textarea, select, button {
 .btn-primary { @apply btn bg-brand text-white hover:bg-brand-dark; }
 .btn-secondary { @apply btn bg-white border border-slate-300 text-slate-800 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-700; }
 .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700; }
-.field { @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500; }
+.field { @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500; }
 .label { @apply block text-sm font-medium text-slate-700 mb-1 dark:text-slate-300; }

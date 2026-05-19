@@ -4,7 +4,6 @@ import { getOptionalUser } from "@/lib/guards";
 import LanguageToggle from "./LanguageToggle";
 import DarkModeToggle from "./DarkModeToggle";
 import SignOutButton from "./SignOutButton";
-import MobileMenu from "./MobileMenu";
 import type { Locale } from "@/i18n/config";
 
 export default async function Header({ locale }: { locale: Locale }) {
@@ -61,15 +60,12 @@ export default async function Header({ locale }: { locale: Locale }) {
         {/* Mobile spacer pushes controls to the end */}
         <div className="flex-1 md:hidden" />
 
-        {/* Always-visible controls (small) */}
+        {/* Always-visible controls */}
         <DarkModeToggle />
         <LanguageToggle currentLocale={locale} />
 
-        {/* Desktop sign-in/out */}
+        {/* Sign-in/out (mobile menu duplicates this on small screens via bottom nav profile tab) */}
         <div className="hidden md:block">{authNode}</div>
-
-        {/* Mobile hamburger (contains nav + auth) */}
-        <MobileMenu items={navItems} authNode={authNode} />
       </div>
     </header>
   );

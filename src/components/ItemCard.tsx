@@ -31,7 +31,7 @@ export default function ItemCard({
   const itemPath = `/${locale}/items/${item.id}`;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:shadow-md dark:bg-slate-900 dark:ring-slate-800">
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:shadow-md active:scale-[0.98] dark:bg-slate-900 dark:ring-slate-800">
       <div className="absolute end-2 top-2 z-10">
         <LikeButton
           itemId={item.id}

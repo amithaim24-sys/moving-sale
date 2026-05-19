@@ -38,12 +38,15 @@
     "by": "מאת {name}",
     "viewsCount": "{count, plural, =0 {אין צפיות עדיין} one {צפייה אחת} two {# צפיות} other {# צפיות}}",
     "noItems": "אין עדיין פריטים.",
+    "noItemsHint": "תהיה הראשון לפרסם כאן משהו.",
     "noLikes": "עדיין לא שמרת פריטים.",
+    "noLikesHint": "לחיצה על הלב על כל פריט תשמור אותו לכאן.",
     "like": "שמירה למועדפים",
     "unlike": "הסרה מהמועדפים"
   },
   "form": {
     "title": "כותרת",
+    "titlePlaceholder": "לדוגמה: כיסא משרדי IKEA Markus",
     "description": "תיאור",
     "type": "סוג",
     "condition": "מצב",

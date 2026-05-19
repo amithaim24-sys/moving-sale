@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/guards";
 import ItemCard from "@/components/ItemCard";
+import EmptyState from "@/components/EmptyState";
 import type { Locale } from "@/i18n/config";
 
 export default async function MyLikesPage({
@@ -34,7 +35,12 @@ export default async function MyLikesPage({
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("nav.likes")}</h1>
       {visible.length === 0 ? (
-        <p className="text-slate-500 dark:text-slate-400">{t("item.noLikes")}</p>
+        <EmptyState
+          emoji="💚"
+          title={t("item.noLikes")}
+          description={t("item.noLikesHint")}
+          cta={{ href: `/${locale}`, label: t("nav.browse") }}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {visible.map(({ item }) => (
