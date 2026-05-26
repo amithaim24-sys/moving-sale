@@ -8,7 +8,12 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     return new NextResponse("Forbidden", { status: 403 });
 
   const { id } = await ctx.params;
-  const body = (await req.json()) as { role?: string; banned?: boolean };
+  let body: { role?: string; banned?: boolean };
+  try {
+    body = (await req.json()) as { role?: string; banned?: boolean };
+  } catch {
+    return new NextResponse("Invalid JSON body", { status: 400 });
+  }
   const data: { role?: string; banned?: boolean } = {};
   if (body.role === "USER" || body.role === "ADMIN") data.role = body.role;
   if (typeof body.banned === "boolean") data.banned = body.banned;

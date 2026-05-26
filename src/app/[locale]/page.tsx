@@ -29,8 +29,8 @@ export default async function CatalogPage({
       ...(q
         ? {
             OR: [
-              { title: { contains: q } },
-              { description: { contains: q } },
+              { title: { contains: q, mode: "insensitive" } },
+              { description: { contains: q, mode: "insensitive" } },
             ],
           }
         : {}),

@@ -44,11 +44,20 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     }
   }
 
+  // Cloudinary destroys are network I/O; collect them and run after the DB transaction
+  // commits so a slow external call can't time out the transaction or leave DB/Cloudinary
+  // inconsistent.
+  const publicIdsToDestroy: string[] = [];
+
   await prisma.$transaction(async (tx) => {
-    // Track previous price so we can show a strikethrough when the seller cuts the price.
+    // Record a "was" price only when the seller actually cut the price; clear it otherwise
+    // so a later price increase doesn't leave a stale strikethrough.
     let previousPriceIls: number | null | undefined = undefined;
     if (payload.priceIls !== undefined && payload.priceIls !== found.priceIls) {
-      previousPriceIls = found.priceIls;
+      previousPriceIls =
+        payload.priceIls != null && payload.priceIls < (found.priceIls ?? Infinity)
+          ? found.priceIls
+          : null;
     }
 
     await tx.item.update({
@@ -69,7 +78,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       const toDelete = found.images.filter((i) => !incoming.has(i.cloudinaryPublicId));
       for (const img of toDelete) {
         await tx.itemImage.delete({ where: { id: img.id } });
-        await destroyImage(img.cloudinaryPublicId);
+        publicIdsToDestroy.push(img.cloudinaryPublicId);
       }
       const existingIds = new Set(found.images.map((i) => i.cloudinaryPublicId));
       for (let idx = 0; idx < payload.images.length; idx++) {
@@ -87,6 +96,9 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       }
     }
   });
+
+  // Best-effort Cloudinary cleanup after the DB commit (destroyImage swallows its own errors).
+  for (const publicId of publicIdsToDestroy) await destroyImage(publicId);
 
   return NextResponse.json({ ok: true });
 }

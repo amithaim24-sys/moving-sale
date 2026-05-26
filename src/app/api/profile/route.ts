@@ -7,7 +7,12 @@ export async function PATCH(req: Request) {
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
   if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
 
-  const body = (await req.json()) as { name?: string; whatsappPhone?: string; city?: string };
+  let body: { name?: string; whatsappPhone?: string; city?: string };
+  try {
+    body = (await req.json()) as { name?: string; whatsappPhone?: string; city?: string };
+  } catch {
+    return new NextResponse("Invalid JSON body", { status: 400 });
+  }
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 80) || null : undefined;
   const city = typeof body.city === "string" ? body.city.trim().slice(0, 80) || null : undefined;
   const rawPhone = typeof body.whatsappPhone === "string" ? body.whatsappPhone.trim() : undefined;

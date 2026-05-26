@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
+  if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
   const { id } = await ctx.params;
 
   const item = await prisma.item.findUnique({ where: { id }, select: { id: true } });
@@ -21,6 +22,7 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
+  if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
   const { id } = await ctx.params;
 
   await prisma.itemLike.deleteMany({
