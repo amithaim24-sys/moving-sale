@@ -1,25 +1,33 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { csrfBlock } from "@/lib/security";
 
-export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const blocked = csrfBlock(req);
+  if (blocked) return blocked;
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
   if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
   const { id } = await ctx.params;
 
-  const item = await prisma.item.findUnique({ where: { id }, select: { id: true } });
-  if (!item) return new NextResponse("Not found", { status: 404 });
-
-  await prisma.itemLike.upsert({
-    where: { userId_itemId: { userId: session.user.id, itemId: id } },
-    update: {},
-    create: { userId: session.user.id, itemId: id },
-  });
+  try {
+    await prisma.itemLike.upsert({
+      where: { userId_itemId: { userId: session.user.id, itemId: id } },
+      update: {},
+      create: { userId: session.user.id, itemId: id },
+    });
+  } catch {
+    // The item was deleted between the user's view and this click (FK violation), or
+    // a concurrent like landed first. Either way there's nothing to surface.
+    return new NextResponse("Not found", { status: 404 });
+  }
   return NextResponse.json({ liked: true });
 }
 
-export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const blocked = csrfBlock(req);
+  if (blocked) return blocked;
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
   if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });

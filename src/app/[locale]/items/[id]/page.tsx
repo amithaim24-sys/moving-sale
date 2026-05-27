@@ -38,8 +38,9 @@ export default async function ItemDetailPage({
   if (item.status === "DRAFT" && !isOwner && !isAdmin) redirect(`/${locale}`);
 
   // Count public views. Skip owner and admin to keep the metric meaningful.
+  // Awaited so the write actually flushes before the serverless function returns.
   if (!isOwner && !isAdmin && item.status === "AVAILABLE") {
-    prisma.item
+    await prisma.item
       .update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } })
       .catch(() => {});
   }
@@ -51,10 +52,16 @@ export default async function ItemDetailPage({
       }))
     : false;
 
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  const proto = h.get("x-forwarded-proto") ?? "https";
-  const itemUrl = `${proto}://${host}/${locale}/items/${item.id}`;
+  // Build the share URL from a trusted configured base, not attacker-controllable
+  // forwarded headers. Fall back to request headers only if no base URL is set.
+  let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL;
+  if (!baseUrl) {
+    const h = await headers();
+    const host = h.get("host");
+    const proto = h.get("x-forwarded-proto") ?? "https";
+    baseUrl = `${proto}://${host}`;
+  }
+  const itemUrl = `${baseUrl.replace(/\/$/, "")}/${locale}/items/${item.id}`;
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
@@ -98,7 +105,13 @@ export default async function ItemDetailPage({
         )}
 
         <div className="sticky bottom-2 md:static">
-          <WhatsAppButton phone={item.owner.whatsappPhone} title={item.title} itemUrl={itemUrl} />
+          <WhatsAppButton
+            phone={viewer ? item.owner.whatsappPhone : null}
+            title={item.title}
+            itemUrl={itemUrl}
+            isLoggedIn={!!viewer}
+            locale={locale}
+          />
         </div>
       </div>
     </div>

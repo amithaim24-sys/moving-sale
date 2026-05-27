@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export type LightboxImage = { id: string; url: string };
 
@@ -14,8 +15,10 @@ export default function Lightbox({
   startIndex: number;
   onClose: () => void;
 }) {
+  const t = useTranslations("a11y");
   const [idx, setIdx] = useState(startIndex);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const next = useCallback(
     () => setIdx((i) => (i + 1) % images.length),
@@ -26,11 +29,19 @@ export default function Lightbox({
     [images.length],
   );
 
+  // Move focus into the dialog on open.
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
+      // RTL-aware: in RTL layouts ArrowRight is visually "back" (prev) and
+      // ArrowLeft is visually "forward" (next).
+      const isRtl = document.documentElement.dir === "rtl";
+      if (e.key === "ArrowRight") isRtl ? prev() : next();
+      if (e.key === "ArrowLeft") isRtl ? next() : prev();
     }
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -64,13 +75,24 @@ export default function Lightbox({
       className="fixed inset-0 z-[70] flex flex-col bg-black/95 text-white"
       role="dialog"
       aria-modal="true"
+      aria-label={t("imageCounter", { current: idx + 1, total: images.length })}
     >
+      {/* Screen-reader live region announces image position on navigation */}
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {t("imageCounter", { current: idx + 1, total: images.length })}
+      </div>
+
       <div className="flex items-center justify-between p-3 text-sm">
-        <span>{idx + 1} / {images.length}</span>
+        <span aria-hidden="true">{idx + 1} / {images.length}</span>
         <button
+          ref={closeButtonRef}
           onClick={onClose}
-          aria-label="Close"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10"
+          aria-label={t("closeDialog")}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
             <path d="M6 6l12 12M6 18L18 6" />
@@ -102,8 +124,8 @@ export default function Lightbox({
           <>
             <button
               onClick={prev}
-              aria-label="Previous"
-              className="absolute start-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 hover:bg-black/60 md:inline-flex"
+              aria-label={t("previousImage")}
+              className="absolute start-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 hover:bg-black/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:inline-flex"
             >
               <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
                 <path d="M15 6l-6 6 6 6" />
@@ -111,8 +133,8 @@ export default function Lightbox({
             </button>
             <button
               onClick={next}
-              aria-label="Next"
-              className="absolute end-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 hover:bg-black/60 md:inline-flex"
+              aria-label={t("nextImage")}
+              className="absolute end-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 hover:bg-black/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:inline-flex"
             >
               <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
                 <path d="M9 6l6 6-6 6" />
@@ -128,8 +150,9 @@ export default function Lightbox({
             <button
               key={i}
               onClick={() => setIdx(i)}
-              aria-label={`Go to image ${i + 1}`}
-              className={`h-2 rounded-full transition-all ${
+              aria-label={t("imageCounter", { current: i + 1, total: images.length })}
+              aria-pressed={i === idx}
+              className={`h-2 rounded-full transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                 i === idx ? "w-6 bg-white" : "w-2 bg-white/40 hover:bg-white/70"
               }`}
             />

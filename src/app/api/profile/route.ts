@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { csrfBlock } from "@/lib/security";
 
 export async function PATCH(req: Request) {
+  const blocked = csrfBlock(req);
+  if (blocked) return blocked;
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
   if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });

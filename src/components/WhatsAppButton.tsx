@@ -1,17 +1,34 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 export default function WhatsAppButton({
   phone,
   title,
   itemUrl,
+  isLoggedIn,
+  locale,
 }: {
   phone: string | null;
   title: string;
   itemUrl: string;
+  isLoggedIn: boolean;
+  locale: string;
 }) {
   const t = useTranslations("item");
+
+  // Don't expose the seller's number to anonymous visitors — gate contact behind sign-in.
+  if (!isLoggedIn) {
+    return (
+      <Link
+        href={`/${locale}/signin`}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-3 text-base font-semibold text-white shadow hover:bg-[#1ebe57]"
+      >
+        {t("signInToContact")}
+      </Link>
+    );
+  }
 
   if (!phone) {
     return <p className="text-sm text-slate-500">{t("noPhone")}</p>;

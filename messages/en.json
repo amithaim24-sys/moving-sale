@@ -34,6 +34,7 @@
     "contactWhatsApp": "Contact on WhatsApp",
     "waMessageLabel": "WhatsApp message",
     "noPhone": "Seller has not set up WhatsApp yet",
+    "signInToContact": "Sign in to contact the seller",
     "waMessage": "Hi! I'm interested in your item \"{title}\" — {url}",
     "by": "by {name}",
     "viewsCount": "{count, plural, =0 {no views yet} one {# view} other {# views}}",
@@ -64,11 +65,13 @@
     "aspect": "Crop",
     "aspectFree": "Free",
     "applyAndUpload": "Apply & upload",
+    "imageLoadError": "Could not load that image. Please try a different file.",
     "save": "Save",
     "optional": "optional",
     "saveDraft": "Save as draft",
     "cancel": "Cancel",
     "delete": "Delete",
+    "confirmDelete": "Delete this item permanently? This cannot be undone.",
     "edit": "Edit",
     "create": "Create item",
     "phone": "WhatsApp number",
@@ -100,5 +103,26 @@
     "signInGoogle": "Continue with Google",
     "signInBlurb": "Sign in with your Google account to post items."
   },
-  "lang": { "en": "English", "he": "עברית" }
+  "lang": {
+    "en": "English",
+    "he": "עברית",
+    "switchToEnglish": "Switch to English",
+    "switchToHebrew": "Switch to Hebrew"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "closeDialog": "Close",
+    "previousImage": "Previous image",
+    "nextImage": "Next image",
+    "imageCounter": "Image {current} of {total}",
+    "showPhoto": "Show photo {n}",
+    "rotateLeft": "Rotate left",
+    "rotateRight": "Rotate right",
+    "aspectRatio": "Aspect ratio {ratio}",
+    "aspectRatioFree": "Free aspect ratio",
+    "zoomLabel": "Zoom",
+    "phoneDialogTitle": "WhatsApp number",
+    "previousPrice": "Previous price: {price}",
+    "currentPrice": "Current price: {price}"
+  }
 }

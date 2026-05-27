@@ -1,7 +1,12 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "./auth";
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
+
+// Dedupe the session lookup within a single request — layout, header, and the page
+// itself all need the user, but should only hit the session table once.
+const getSession = cache(() => auth());
 
 async function currentLocale(): Promise<Locale> {
   const c = await cookies();
@@ -10,7 +15,7 @@ async function currentLocale(): Promise<Locale> {
 }
 
 export async function requireUser() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user) {
     const locale = await currentLocale();
     redirect(`/${locale}/signin`);
@@ -32,6 +37,6 @@ export async function requireAdmin() {
 }
 
 export async function getOptionalUser() {
-  const session = await auth();
+  const session = await getSession();
   return session?.user ?? null;
 }

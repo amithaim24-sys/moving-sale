@@ -27,14 +27,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   events: {
-    async createUser({ user }) {
-      // Auto-promote users whose email is in BOOTSTRAP_ADMIN_EMAILS (comma-separated).
+    // Auto-promote allowlisted emails on every sign-in (not just first-time createUser),
+    // so adding an email to BOOTSTRAP_ADMIN_EMAILS works even for existing accounts.
+    async signIn({ user }) {
       const allowlist = (process.env.BOOTSTRAP_ADMIN_EMAILS ?? "")
         .split(",")
         .map((e) => e.trim().toLowerCase())
         .filter(Boolean);
       if (user.id && user.email && allowlist.includes(user.email.toLowerCase())) {
-        await prisma.user.update({ where: { id: user.id }, data: { role: "ADMIN" } });
+        await prisma.user.updateMany({
+          where: { id: user.id, role: { not: "ADMIN" } },
+          data: { role: "ADMIN" },
+        });
       }
     },
   },

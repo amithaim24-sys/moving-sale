@@ -44,12 +44,13 @@ export default function ProfileForm({
   return (
     <form onSubmit={submit} className="space-y-4 rounded-2xl bg-white p-6 shadow ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
       <div>
-        <label className="label">{labels.name}</label>
-        <input className="field" value={name} onChange={(e) => setName(e.target.value)} />
+        <label htmlFor="profile-name" className="label">{labels.name}</label>
+        <input id="profile-name" className="field" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div>
-        <label className="label">{labels.city}</label>
+        <label htmlFor="profile-city" className="label">{labels.city}</label>
         <input
+          id="profile-city"
           className="field"
           value={city}
           onChange={(e) => setCity(e.target.value)}
@@ -57,8 +58,9 @@ export default function ProfileForm({
         />
       </div>
       <div>
-        <label className="label">{labels.phone}</label>
+        <label htmlFor="profile-phone" className="label">{labels.phone}</label>
         <input
+          id="profile-phone"
           className="field"
           inputMode="tel"
           dir="ltr"

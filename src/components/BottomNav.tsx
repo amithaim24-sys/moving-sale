@@ -77,6 +77,7 @@ export default function BottomNav({
                 <Link
                   href={tab.href}
                   aria-label={tab.label}
+                  aria-current={active ? "page" : undefined}
                   className="-mt-5 inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/30 transition active:scale-95"
                 >
                   <Icon />
@@ -88,6 +89,7 @@ export default function BottomNav({
             <li key={tab.href} className="flex-1">
               <Link
                 href={tab.href}
+                aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center justify-center gap-0.5 px-1 py-2 text-[10px] font-medium transition ${
                   active
                     ? "text-brand"

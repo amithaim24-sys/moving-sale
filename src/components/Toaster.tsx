@@ -26,7 +26,9 @@ export default function Toaster({ children }: { children: React.ReactNode }) {
       {children}
       <div
         className="pointer-events-none fixed inset-x-0 top-16 z-[80] flex flex-col items-center gap-2 px-3"
+        role="status"
         aria-live="polite"
+        aria-atomic="true"
       >
         {toasts.map((t) => (
           <ToastItem key={t.id} toast={t} onDone={() => setToasts((arr) => arr.filter((x) => x.id !== t.id))} />
@@ -47,6 +49,7 @@ function ToastItem({ toast, onDone }: { toast: Toast; onDone: () => void }) {
       : "bg-red-600 text-white";
   return (
     <div
+      role={toast.kind === "error" ? "alert" : undefined}
       className={`pointer-events-auto max-w-sm rounded-full px-4 py-2 text-sm font-medium shadow-lg ${color}`}
     >
       {toast.message}

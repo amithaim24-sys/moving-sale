@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { locales, dirOf, type Locale } from "@/i18n/config";
 import Header from "@/components/Header";
@@ -24,6 +24,7 @@ export default async function LocaleLayout({
   if (!(locales as readonly string[]).includes(locale)) notFound();
   setRequestLocale(locale);
   const messages = await getMessages();
+  const t = await getTranslations("a11y");
   const user = await getOptionalUser();
 
   return (
@@ -36,11 +37,17 @@ export default async function LocaleLayout({
         />
       </head>
       <body>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:outline-none"
+        >
+          {t("skipToContent")}
+        </a>
         <SessionProvider>
           <NextIntlClientProvider messages={messages} locale={locale}>
             <Toaster>
               <Header locale={locale as Locale} />
-              <main className="mx-auto max-w-6xl px-3 py-6 pb-24 sm:px-4 md:pb-6">{children}</main>
+              <main id="main-content" className="mx-auto max-w-6xl px-3 py-6 pb-24 sm:px-4 md:pb-6">{children}</main>
               <BottomNav locale={locale} isLoggedIn={!!user} />
             </Toaster>
           </NextIntlClientProvider>

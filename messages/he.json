@@ -34,6 +34,7 @@
     "contactWhatsApp": "צור קשר ב-WhatsApp",
     "waMessageLabel": "הודעת WhatsApp",
     "noPhone": "המוכר עדיין לא הגדיר מספר WhatsApp",
+    "signInToContact": "התחברו כדי ליצור קשר עם המוכר",
     "waMessage": "היי! מעוניין/ת בפריט \"{title}\" — {url}",
     "by": "מאת {name}",
     "viewsCount": "{count, plural, =0 {אין צפיות עדיין} one {צפייה אחת} two {# צפיות} other {# צפיות}}",
@@ -64,11 +65,13 @@
     "aspect": "חיתוך",
     "aspectFree": "חופשי",
     "applyAndUpload": "החל והעלה",
+    "imageLoadError": "לא ניתן לטעון את התמונה. נסו קובץ אחר.",
     "save": "שמירה",
     "optional": "אופציונלי",
     "saveDraft": "שמירה כטיוטה",
     "cancel": "ביטול",
     "delete": "מחיקה",
+    "confirmDelete": "למחוק את הפריט לצמיתות? לא ניתן לבטל פעולה זו.",
     "edit": "עריכה",
     "create": "יצירת פריט",
     "phone": "מספר WhatsApp",
@@ -100,5 +103,26 @@
     "signInGoogle": "המשך עם Google",
     "signInBlurb": "התחבר/י עם חשבון Google כדי לפרסם פריטים."
   },
-  "lang": { "en": "English", "he": "עברית" }
+  "lang": {
+    "en": "English",
+    "he": "עברית",
+    "switchToEnglish": "עבור לאנגלית",
+    "switchToHebrew": "עבור לעברית"
+  },
+  "a11y": {
+    "skipToContent": "דלג לתוכן",
+    "closeDialog": "סגירה",
+    "previousImage": "תמונה קודמת",
+    "nextImage": "תמונה הבאה",
+    "imageCounter": "תמונה {current} מתוך {total}",
+    "showPhoto": "הצג תמונה {n}",
+    "rotateLeft": "סובב שמאלה",
+    "rotateRight": "סובב ימינה",
+    "aspectRatio": "יחס גובה-רוחב {ratio}",
+    "aspectRatioFree": "יחס חופשי",
+    "zoomLabel": "הגדלה",
+    "phoneDialogTitle": "מספר WhatsApp",
+    "previousPrice": "מחיר קודם: {price}",
+    "currentPrice": "מחיר נוכחי: {price}"
+  }
 }

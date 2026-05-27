@@ -78,9 +78,17 @@ export default function ItemForm({
 
   async function remove() {
     if (!itemId) return;
-    if (!confirm("?")) return;
+    if (!confirm(t("form.confirmDelete"))) return;
     setBusy(true);
-    await fetch(`/api/items/${itemId}`, { method: "DELETE" });
+    setError(null);
+    const res = await fetch(`/api/items/${itemId}`, { method: "DELETE" });
+    if (!res.ok) {
+      const msg = (await res.text().catch(() => "")) || "Error";
+      setError(msg);
+      toast.show(msg, "error");
+      setBusy(false);
+      return;
+    }
     router.push(`/${locale}/my/items`);
     router.refresh();
   }
@@ -108,8 +116,9 @@ export default function ItemForm({
       />
 
       <div>
-        <label className="label">{t("form.title")}</label>
+        <label htmlFor="field-title" className="label">{t("form.title")}</label>
         <input
+          id="field-title"
           required
           autoFocus={!itemId}
           className="field"
@@ -120,10 +129,11 @@ export default function ItemForm({
       </div>
 
       <div>
-        <label className="label">
+        <label htmlFor="field-description" className="label">
           {t("form.description")} <span className="text-xs text-slate-400">({t("form.optional")})</span>
         </label>
         <textarea
+          id="field-description"
           rows={4}
           className="field"
           value={values.description}
@@ -133,8 +143,9 @@ export default function ItemForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className="label">{t("form.type")}</label>
+          <label htmlFor="field-type" className="label">{t("form.type")}</label>
           <select
+            id="field-type"
             className="field"
             value={values.type}
             onChange={(e) => set("type", e.target.value as ListingType)}
@@ -144,8 +155,9 @@ export default function ItemForm({
           </select>
         </div>
         <div>
-          <label className="label">{t("form.condition")}</label>
+          <label htmlFor="field-condition" className="label">{t("form.condition")}</label>
           <select
+            id="field-condition"
             className="field"
             value={values.condition ?? ""}
             onChange={(e) =>
@@ -159,8 +171,9 @@ export default function ItemForm({
           </select>
         </div>
         <div>
-          <label className="label">{t("form.price")}</label>
+          <label htmlFor="field-price" className="label">{t("form.price")}</label>
           <input
+            id="field-price"
             type="number"
             inputMode="numeric"
             min={0}
@@ -176,8 +189,9 @@ export default function ItemForm({
 
       {itemId && (
         <div>
-          <label className="label">{t("form.status")}</label>
+          <label htmlFor="field-status" className="label">{t("form.status")}</label>
           <select
+            id="field-status"
             className="field"
             value={values.status}
             onChange={(e) => set("status", e.target.value as ListingStatus)}

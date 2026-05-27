@@ -9,6 +9,7 @@ cloudinary.config({
 });
 
 const ALLOWED_FORMATS = "jpg,jpeg,png,webp,heic,heif";
+const MAX_FILE_SIZE = 12 * 1024 * 1024; // 12 MB — mirrors the client-side check, but signed so Cloudinary enforces it.
 
 export function signUpload(folder: string) {
   const timestamp = Math.floor(Date.now() / 1000);
@@ -19,6 +20,7 @@ export function signUpload(folder: string) {
     timestamp,
     public_id,
     allowed_formats: ALLOWED_FORMATS,
+    max_file_size: MAX_FILE_SIZE,
     overwrite: "false",
   };
   const signature = cloudinary.utils.api_sign_request(

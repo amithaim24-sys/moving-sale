@@ -17,7 +17,8 @@ export default async function CatalogPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { type, q } = await searchParams;
+  const { type, q: rawQ } = await searchParams;
+  const q = rawQ?.trim().slice(0, 100) || undefined;
   const t = await getTranslations();
 
   const user = await getOptionalUser();
@@ -41,6 +42,7 @@ export default async function CatalogPage({
       _count: { select: { images: true } },
     },
     orderBy: { createdAt: "desc" },
+    take: 60,
   });
 
   const likedIds = user
@@ -81,7 +83,11 @@ export default async function CatalogPage({
         className="flex flex-col gap-2 md:sticky md:top-14 md:z-20 md:bg-slate-50/95 md:py-2 md:backdrop-blur md:dark:bg-slate-950/95"
         action={`/${locale}`}
       >
+        <label htmlFor="catalog-search" className="sr-only">
+          {t("filter.searchPlaceholder")}
+        </label>
         <input
+          id="catalog-search"
           type="text"
           name="q"
           defaultValue={q ?? ""}
@@ -135,7 +141,8 @@ export default async function CatalogPage({
                 previousPriceIls: item.previousPriceIls,
                 images: item.images,
                 imageCount: item._count.images,
-                owner: item.owner,
+                // Only hand the seller's number to authenticated viewers.
+                owner: { ...item.owner, whatsappPhone: user ? item.owner.whatsappPhone : null },
               }}
             />
           ))}

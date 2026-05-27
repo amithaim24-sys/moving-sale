@@ -1,11 +1,13 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { locales, type Locale } from "@/i18n/config";
 
 export default function LanguageToggle({ currentLocale }: { currentLocale: Locale }) {
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations("lang");
 
   function switchTo(next: Locale) {
     if (next === currentLocale) return;
@@ -20,8 +22,10 @@ export default function LanguageToggle({ currentLocale }: { currentLocale: Local
         <button
           key={loc}
           onClick={() => switchTo(loc)}
-          className={`px-2 py-1 rounded ${
-            loc === currentLocale ? "bg-brand text-white" : "text-slate-600 hover:bg-slate-100"
+          aria-label={loc === "he" ? t("switchToHebrew") : t("switchToEnglish")}
+          aria-pressed={loc === currentLocale}
+          className={`px-2 py-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+            loc === currentLocale ? "bg-brand text-white" : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
           }`}
         >
           {loc === "he" ? "עב" : "EN"}

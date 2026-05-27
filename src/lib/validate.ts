@@ -67,7 +67,10 @@ export function parseItemPayload(raw: unknown, partial = false): Partial<ItemPay
       if (typeof x.cloudinaryPublicId !== "string" || typeof x.url !== "string")
         throw new Error("Bad image entry");
       if (!x.url.startsWith(urlPrefix)) throw new Error("Image URL must be in our Cloudinary account");
-      if (!x.cloudinaryPublicId.startsWith(`${folder}/`))
+      // Server-issued ids are exactly `${folder}/<uuid>`. Enforce that exact shape so a
+      // crafted id can't smuggle `..` or extra path segments into the stored value.
+      const folderRe = folder.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (!new RegExp(`^${folderRe}/[A-Za-z0-9-]+$`).test(x.cloudinaryPublicId))
         throw new Error("Image publicId must be inside our upload folder");
       return { cloudinaryPublicId: x.cloudinaryPublicId, url: x.url };
     });

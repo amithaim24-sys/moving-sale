@@ -22,6 +22,7 @@ export default async function AdminItemsPage({
       owner: { select: { email: true, name: true } },
     },
     orderBy: { createdAt: "desc" },
+    take: 200,
   });
 
   return (
@@ -52,7 +53,12 @@ export default async function AdminItemsPage({
             <AdminItemActions
               id={item.id}
               hidden={item.status === "HIDDEN"}
-              labels={{ hide: t("admin.hide"), show: t("admin.show"), delete: t("form.delete") }}
+              labels={{
+                hide: t("admin.hide"),
+                show: t("admin.show"),
+                delete: t("form.delete"),
+                confirmDelete: t("form.confirmDelete"),
+              }}
             />
           </li>
         ))}

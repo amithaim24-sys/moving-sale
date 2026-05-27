@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import ImageEditorModal from "./ImageEditorModal";
+
+// react-easy-crop is heavy and only needed once the user opens the editor — load it lazily.
+const ImageEditorModal = dynamic(() => import("./ImageEditorModal"), { ssr: false });
 
 export type UploadedImage = { cloudinaryPublicId: string; url: string };
 
@@ -23,12 +26,22 @@ export default function ItemImageUploader({
   const [error, setError] = useState<string | null>(null);
   // Queue of files the user picked. We open the editor for each one in turn.
   const [queue, setQueue] = useState<File[]>([]);
+  // Uploads complete asynchronously and may overlap; read the latest value from a ref
+  // instead of the closed-over `value` so a second upload can't drop the first one.
+  const valueRef = useRef(value);
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   function pickFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     setError(null);
     const accepted: File[] = [];
     for (const f of Array.from(files)) {
+      if (!f.type.startsWith("image/")) {
+        setError(`${f.name}: not an image`);
+        continue;
+      }
       if (f.size > 12 * 1024 * 1024) {
         setError(`${f.name}: max 12 MB`);
         continue;
@@ -53,6 +66,7 @@ export default function ItemImageUploader({
       form.append("signature", sig.signature);
       form.append("public_id", sig.public_id);
       form.append("allowed_formats", sig.allowed_formats);
+      form.append("max_file_size", String(sig.max_file_size));
       form.append("overwrite", sig.overwrite);
 
       const res = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
@@ -64,7 +78,7 @@ export default function ItemImageUploader({
         throw new Error(`Upload failed: ${detail.slice(0, 200) || res.statusText}`);
       }
       const data = await res.json();
-      onChange([...value, { cloudinaryPublicId: data.public_id, url: data.secure_url }]);
+      onChange([...valueRef.current, { cloudinaryPublicId: data.public_id, url: data.secure_url }]);
     } catch (err) {
       setError((err as Error).message);
     } finally {

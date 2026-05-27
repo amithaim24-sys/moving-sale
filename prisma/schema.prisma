@@ -54,6 +54,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -105,4 +107,6 @@ model ItemImage {
   cloudinaryPublicId String
   url                String
   sortOrder          Int    @default(0)
+
+  @@index([itemId, sortOrder])
 }

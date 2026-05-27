@@ -79,6 +79,8 @@ export default function ItemCard({
           phone={item.owner.whatsappPhone}
           title={item.title}
           itemPath={itemPath}
+          isLoggedIn={isLoggedIn}
+          locale={locale}
         />
       </div>
     </article>

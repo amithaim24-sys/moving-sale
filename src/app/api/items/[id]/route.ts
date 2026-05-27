@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseItemPayload } from "@/lib/validate";
 import { destroyImage } from "@/lib/cloudinary";
+import { csrfBlock } from "@/lib/security";
 
 async function loadOwned(id: string, userId: string, isAdmin: boolean) {
   const item = await prisma.item.findUnique({
@@ -16,6 +17,8 @@ async function loadOwned(id: string, userId: string, isAdmin: boolean) {
 }
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const blocked = csrfBlock(req);
+  if (blocked) return blocked;
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
   if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
@@ -30,9 +33,16 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     return new NextResponse((e as Error).message, { status: 400 });
   }
 
+  // An admin acting on someone else's item may only moderate its status — never rewrite
+  // the seller's content or images. Strip everything but `status` in that case.
+  const isOwner = found.ownerId === session.user.id;
+  if (!isOwner) {
+    payload = payload.status !== undefined ? { status: payload.status } : {};
+  }
+
   // If the owner is trying to publish (status != DRAFT) they must have a WhatsApp phone.
   // Admins moderating someone else's item are exempt from the phone gate.
-  if (payload.status && payload.status !== "DRAFT" && found.ownerId === session.user.id) {
+  if (payload.status && payload.status !== "DRAFT" && isOwner) {
     const me = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { whatsappPhone: true, banned: true },
@@ -49,7 +59,8 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   // inconsistent.
   const publicIdsToDestroy: string[] = [];
 
-  await prisma.$transaction(async (tx) => {
+  try {
+    await prisma.$transaction(async (tx) => {
     // Record a "was" price only when the seller actually cut the price; clear it otherwise
     // so a later price increase doesn't leave a stale strikethrough.
     let previousPriceIls: number | null | undefined = undefined;
@@ -95,15 +106,20 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         }
       }
     }
-  });
+    });
+  } catch {
+    return new NextResponse("Could not update item", { status: 500 });
+  }
 
   // Best-effort Cloudinary cleanup after the DB commit (destroyImage swallows its own errors).
-  for (const publicId of publicIdsToDestroy) await destroyImage(publicId);
+  await Promise.all(publicIdsToDestroy.map((publicId) => destroyImage(publicId)));
 
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const blocked = csrfBlock(req);
+  if (blocked) return blocked;
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
   if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
@@ -111,7 +127,13 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   const found = await loadOwned(id, session.user.id, session.user.role === "ADMIN");
   if (!found) return new NextResponse("Not found", { status: 404 });
 
-  for (const img of found.images) await destroyImage(img.cloudinaryPublicId);
-  await prisma.item.delete({ where: { id } });
+  try {
+    await prisma.item.delete({ where: { id } });
+  } catch {
+    return new NextResponse("Could not delete item", { status: 500 });
+  }
+  // Delete the DB row first; only then drop the images. If this is interrupted the
+  // worst case is an orphaned Cloudinary asset, not a broken listing with dead images.
+  await Promise.all(found.images.map((img) => destroyImage(img.cloudinaryPublicId)));
   return NextResponse.json({ ok: true });
 }
