@@ -49,6 +49,8 @@
   "form": {
     "title": "Title",
     "titlePlaceholder": "e.g. IKEA Markus office chair",
+    "findImageHint": "No photo of your own? Find one on Google Images.",
+    "findImageOnGoogle": "Search “{title}” on Google Images",
     "description": "Description",
     "type": "Type",
     "condition": "Condition",

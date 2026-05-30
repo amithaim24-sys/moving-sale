@@ -49,6 +49,8 @@
   "form": {
     "title": "כותרת",
     "titlePlaceholder": "לדוגמה: כיסא משרדי IKEA Markus",
+    "findImageHint": "אין לך תמונה משלך? אפשר למצוא ב-Google Images.",
+    "findImageOnGoogle": "חיפוש “{title}” ב-Google Images",
     "description": "תיאור",
     "type": "סוג",
     "condition": "מצב",

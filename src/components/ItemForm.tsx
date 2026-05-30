@@ -141,6 +141,23 @@ export default function ItemForm({
           onChange={(e) => set("title", e.target.value)}
           placeholder={t("form.titlePlaceholder")}
         />
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <a
+            href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(values.title.trim())}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-disabled={!values.title.trim()}
+            onClick={(e) => {
+              if (!values.title.trim()) e.preventDefault();
+            }}
+            className={`btn-secondary text-xs ${
+              values.title.trim() ? "" : "pointer-events-none opacity-50"
+            }`}
+          >
+            🔍 {t("form.findImageOnGoogle", { title: values.title.trim() })}
+          </a>
+          <span className="text-xs text-slate-500">{t("form.findImageHint")}</span>
+        </div>
       </div>
 
       <div>
