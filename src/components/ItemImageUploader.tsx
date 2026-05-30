@@ -66,7 +66,6 @@ export default function ItemImageUploader({
       form.append("signature", sig.signature);
       form.append("public_id", sig.public_id);
       form.append("allowed_formats", sig.allowed_formats);
-      form.append("max_file_size", String(sig.max_file_size));
       form.append("overwrite", sig.overwrite);
 
       const res = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
