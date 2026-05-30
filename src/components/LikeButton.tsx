@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useToast } from "./Toaster";
 
 export default function LikeButton({
   itemId,
@@ -19,6 +20,7 @@ export default function LikeButton({
 }) {
   const router = useRouter();
   const t = useTranslations("item");
+  const toast = useToast();
   const [liked, setLiked] = useState(initiallyLiked);
   const [busy, setBusy] = useState(false);
 
@@ -29,14 +31,24 @@ export default function LikeButton({
       router.push(`/${locale}/signin`);
       return;
     }
+    if (busy) return;
     setBusy(true);
     const next = !liked;
     setLiked(next); // optimistic
-    const res = await fetch(`/api/items/${itemId}/like`, {
-      method: next ? "POST" : "DELETE",
-    });
-    if (!res.ok) setLiked(!next); // revert
-    setBusy(false);
+    try {
+      const res = await fetch(`/api/items/${itemId}/like`, {
+        method: next ? "POST" : "DELETE",
+      });
+      if (!res.ok) {
+        setLiked(!next); // revert
+        toast.show(t("saveError"), "error");
+      }
+    } catch {
+      setLiked(!next); // revert on network failure
+      toast.show(t("saveError"), "error");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const dim = size === "lg" ? "h-11 w-11" : size === "sm" ? "h-8 w-8" : "h-9 w-9";

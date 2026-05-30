@@ -32,13 +32,18 @@ export default function ProfileForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("saving");
-    const res = await fetch("/api/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, whatsappPhone: phone, city }),
-    });
-    setStatus(res.ok ? "saved" : "error");
-    toast.show(res.ok ? labels.saved : "Error", res.ok ? "success" : "error");
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, whatsappPhone: phone, city }),
+      });
+      setStatus(res.ok ? "saved" : "error");
+      toast.show(res.ok ? labels.saved : "Error", res.ok ? "success" : "error");
+    } catch {
+      setStatus("error");
+      toast.show("Error", "error");
+    }
   }
 
   return (

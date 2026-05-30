@@ -56,21 +56,28 @@ export default function ItemForm({
       status: forceStatus ?? values.status,
       images: values.images,
     };
-    const res = await fetch(itemId ? `/api/items/${itemId}` : "/api/items", {
-      method: itemId ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const msg = (await res.text()) || "Error";
+    try {
+      const res = await fetch(itemId ? `/api/items/${itemId}` : "/api/items", {
+        method: itemId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const msg = (await res.text().catch(() => "")) || t("error.body");
+        setError(msg);
+        toast.show(msg, "error");
+        return;
+      }
+      toast.show(t("form.saved"));
+      router.push(`/${locale}/my/items`);
+      router.refresh();
+    } catch {
+      const msg = t("error.body");
       setError(msg);
       toast.show(msg, "error");
+    } finally {
       setBusy(false);
-      return;
     }
-    toast.show(t("form.saved"));
-    router.push(`/${locale}/my/items`);
-    router.refresh();
   }
 
   const submit = (e: React.FormEvent) => send(undefined, e);
@@ -81,16 +88,23 @@ export default function ItemForm({
     if (!confirm(t("form.confirmDelete"))) return;
     setBusy(true);
     setError(null);
-    const res = await fetch(`/api/items/${itemId}`, { method: "DELETE" });
-    if (!res.ok) {
-      const msg = (await res.text().catch(() => "")) || "Error";
+    try {
+      const res = await fetch(`/api/items/${itemId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const msg = (await res.text().catch(() => "")) || t("error.body");
+        setError(msg);
+        toast.show(msg, "error");
+        return;
+      }
+      router.push(`/${locale}/my/items`);
+      router.refresh();
+    } catch {
+      const msg = t("error.body");
       setError(msg);
       toast.show(msg, "error");
+    } finally {
       setBusy(false);
-      return;
     }
-    router.push(`/${locale}/my/items`);
-    router.refresh();
   }
 
   return (
@@ -120,6 +134,7 @@ export default function ItemForm({
         <input
           id="field-title"
           required
+          maxLength={120}
           autoFocus={!itemId}
           className="field"
           value={values.title}
@@ -135,6 +150,7 @@ export default function ItemForm({
         <textarea
           id="field-description"
           rows={4}
+          maxLength={4000}
           className="field"
           value={values.description}
           onChange={(e) => set("description", e.target.value)}

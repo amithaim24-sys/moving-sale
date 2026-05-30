@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -9,6 +11,63 @@ import ItemGallery from "@/components/ItemGallery";
 import { getOptionalUser } from "@/lib/guards";
 import type { Locale } from "@/i18n/config";
 
+// Cached so generateMetadata and the page itself share a single DB query.
+const getItem = cache((id: string) =>
+  prisma.item.findUnique({
+    where: { id },
+    include: {
+      images: { orderBy: { sortOrder: "asc" } },
+      owner: { select: { id: true, name: true, whatsappPhone: true, banned: true, city: true } },
+    },
+  }),
+);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: Locale; id: string }>;
+}): Promise<Metadata> {
+  const { locale, id } = await params;
+  const item = await getItem(id);
+  const t = await getTranslations({ locale });
+
+  // Never expose private/non-public listings to crawlers and link previews.
+  if (!item || item.status === "HIDDEN" || item.status === "DRAFT" || item.owner.banned) {
+    return { title: t("app.title") };
+  }
+
+  const priceLabel =
+    item.type === "GIVE" || item.priceIls == null
+      ? t("item.free")
+      : t("item.ils", { price: item.priceIls.toLocaleString() });
+  const desc = item.description?.trim();
+  const description =
+    desc && desc.length > 0
+      ? desc.replace(/\s+/g, " ").slice(0, 200)
+      : `${priceLabel}${item.owner.city ? ` · ${item.owner.city}` : ""}`;
+  const ogTitle = `${item.title} — ${priceLabel}`;
+  const image = item.images[0]?.url;
+
+  return {
+    title: item.title,
+    description,
+    alternates: { canonical: `/${locale}/items/${item.id}` },
+    openGraph: {
+      title: ogTitle,
+      description,
+      type: "website",
+      locale: locale === "he" ? "he_IL" : "en_US",
+      ...(image ? { images: [{ url: image, alt: item.title }] } : {}),
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title: ogTitle,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
+  };
+}
+
 export default async function ItemDetailPage({
   params,
 }: {
@@ -18,13 +77,7 @@ export default async function ItemDetailPage({
   setRequestLocale(locale);
   const t = await getTranslations();
 
-  const item = await prisma.item.findUnique({
-    where: { id },
-    include: {
-      images: { orderBy: { sortOrder: "asc" } },
-      owner: { select: { id: true, name: true, whatsappPhone: true, banned: true, city: true } },
-    },
-  });
+  const item = await getItem(id);
 
   if (!item) notFound();
 

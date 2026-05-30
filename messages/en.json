@@ -43,7 +43,8 @@
     "noLikes": "You have not saved any items yet.",
     "noLikesHint": "Tap the heart on any item to save it for later.",
     "like": "Save for later",
-    "unlike": "Remove from saved"
+    "unlike": "Remove from saved",
+    "saveError": "Couldn't update. Please try again."
   },
   "form": {
     "title": "Title",
@@ -102,6 +103,11 @@
     "signInTitle": "Sign in to Moving Sale",
     "signInGoogle": "Continue with Google",
     "signInBlurb": "Sign in with your Google account to post items."
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "We hit an unexpected error. Please try again.",
+    "retry": "Try again"
   },
   "lang": {
     "en": "English",
