@@ -1,4 +1,5 @@
 import { cache } from "react";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
@@ -6,6 +7,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import PriceOrFreeBadge from "@/components/PriceOrFreeBadge";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import GiveIfUnsoldSignupButton from "@/components/GiveIfUnsoldSignupButton";
 import LikeButton from "@/components/LikeButton";
 import ItemGallery from "@/components/ItemGallery";
 import { getOptionalUser } from "@/lib/guards";
@@ -96,7 +98,10 @@ export default async function ItemDetailPage({
   // so run them concurrently rather than back-to-back. The increment is awaited so the
   // write flushes before the serverless function returns.
   const shouldCountView = !isOwner && !isAdmin && item.status === "AVAILABLE";
-  const [, likedRow] = await Promise.all([
+  // The "give away if unsold" fallback now collects website signups instead of opening
+  // WhatsApp — look up whether this viewer has already signed up.
+  const signupEligible = item.type === "SELL" && item.giveIfUnsold;
+  const [, likedRow, signupRow] = await Promise.all([
     shouldCountView
       ? prisma.item
           .update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } })
@@ -108,8 +113,15 @@ export default async function ItemDetailPage({
           select: { id: true },
         })
       : Promise.resolve(null),
+    viewer && signupEligible && !isOwner
+      ? prisma.giveIfUnsoldSignup.findUnique({
+          where: { itemId_userId: { itemId: item.id, userId: viewer.id } },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
   ]);
   const liked = !!likedRow;
+  const signedUp = !!signupRow;
 
   // Build the share URL from a trusted configured base, not attacker-controllable
   // forwarded headers. Fall back to request headers only if no base URL is set.
@@ -172,22 +184,27 @@ export default async function ItemDetailPage({
             locale={locale}
           />
 
-          {/* "Give away if unsold" fallback: only for items still for sale. */}
-          {item.type === "SELL" && item.giveIfUnsold && (
+          {/* "Give away if unsold" fallback: collects website signups instead of WhatsApp. */}
+          {signupEligible && (
             <div className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/20">
               <p className="text-sm text-emerald-800 dark:text-emerald-200">
                 🎁 {t("item.giveIfUnsold.note")}
               </p>
-              <WhatsAppButton
-                phone={viewer ? item.owner.whatsappPhone : null}
-                title={item.title}
-                itemUrl={itemUrl}
-                isLoggedIn={!!viewer}
-                locale={locale}
-                variant="outline"
-                label={t("item.giveIfUnsold.contactCta")}
-                message={t("item.giveIfUnsold.waMessage", { title: item.title, url: itemUrl })}
-              />
+              {isOwner ? (
+                <Link
+                  href={`/${locale}/my/items/${item.id}/signups`}
+                  className="btn-secondary text-sm"
+                >
+                  {t("signups.viewOwnerCta")}
+                </Link>
+              ) : (
+                <GiveIfUnsoldSignupButton
+                  itemId={item.id}
+                  isLoggedIn={!!viewer}
+                  initiallySignedUp={signedUp}
+                  locale={locale}
+                />
+              )}
             </div>
           )}
         </div>

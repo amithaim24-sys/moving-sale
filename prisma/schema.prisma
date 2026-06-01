@@ -27,6 +27,43 @@ model User {
   sessions Session[]
   items    Item[]
   likes    ItemLike[]
+
+  // People this user has invited to co-manage their items.
+  collaborators    Collaborator[] @relation("OwnerCollaborators")
+  // Accounts that have invited this user to co-manage their items.
+  collaboratingFor Collaborator[] @relation("CollaboratorOf")
+  // "Give if unsold" items this user signed up to receive.
+  giveIfUnsoldSignups GiveIfUnsoldSignup[]
+}
+
+// Account-level edit sharing: the owner grants a collaborator edit access to ALL
+// of the owner's items — existing and any created later.
+model Collaborator {
+  id             String   @id @default(cuid())
+  ownerId        String
+  collaboratorId String
+  createdAt      DateTime @default(now())
+
+  owner        User @relation("OwnerCollaborators", fields: [ownerId], references: [id], onDelete: Cascade)
+  collaborator User @relation("CollaboratorOf", fields: [collaboratorId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, collaboratorId])
+  @@index([collaboratorId])
+}
+
+// A logged-in user registering interest in receiving a "give away if unsold" item
+// for free, in place of the WhatsApp contact. The item owner sees these signups.
+model GiveIfUnsoldSignup {
+  id        String   @id @default(cuid())
+  itemId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, userId])
+  @@index([itemId, createdAt])
 }
 
 model Account {
@@ -85,6 +122,7 @@ model Item {
   updatedAt   DateTime @updatedAt
   images      ItemImage[]
   likes       ItemLike[]
+  giveIfUnsoldSignups GiveIfUnsoldSignup[]
 
   @@index([status, createdAt])
   @@index([ownerId])
