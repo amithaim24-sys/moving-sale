@@ -16,6 +16,7 @@ export type ItemFormValues = {
   condition: ItemCondition | null;
   priceIls: number | null;
   giveIfUnsold: boolean;
+  markReduced: boolean;
   status: ListingStatus;
   images: UploadedImage[];
 };
@@ -73,6 +74,7 @@ export default function ItemForm({
       condition: values.condition,
       priceIls: values.type === "GIVE" ? null : values.priceIls,
       giveIfUnsold: values.type === "GIVE" ? false : values.giveIfUnsold,
+      markReduced: values.type === "GIVE" ? false : values.markReduced,
       status: forceStatus ?? values.status,
       images: values.images,
     };
@@ -252,6 +254,27 @@ export default function ItemForm({
           <p className="mt-1 text-xs text-slate-500">{t("form.priceHelp")}</p>
         </div>
       </div>
+
+      {values.type === "SELL" && itemId && (
+        <label
+          htmlFor="field-mark-reduced"
+          className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40"
+        >
+          <input
+            id="field-mark-reduced"
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+            checked={values.markReduced}
+            onChange={(e) => set("markReduced", e.target.checked)}
+          />
+          <span>
+            <span className="font-medium">{t("form.markReduced")}</span>
+            <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+              {t("form.markReducedHelp")}
+            </span>
+          </span>
+        </label>
+      )}
 
       {values.type === "SELL" && (
         <label

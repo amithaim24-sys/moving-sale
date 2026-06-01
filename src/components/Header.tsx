@@ -19,7 +19,7 @@ export default async function Header({ locale }: { locale: Locale }) {
     navItems.push({ href: `/${locale}/my/likes`, label: t("nav.likes") });
     navItems.push({ href: `/${locale}/my/profile`, label: t("nav.profile") });
     if (user.role === "ADMIN") {
-      navItems.push({ href: `/${locale}/admin/items`, label: t("nav.admin") });
+      navItems.push({ href: `/${locale}/admin`, label: t("nav.admin") });
     }
   }
 

@@ -7,6 +7,9 @@ export type ItemPayload = {
   condition: ItemCondition | null;
   priceIls: number | null;
   giveIfUnsold: boolean;
+  // Opt-in: when true the seller wants the old price shown struck-through as a
+  // price reduction. Lowering the price alone no longer triggers this.
+  markReduced: boolean;
   status?: ListingStatus;
   images?: { cloudinaryPublicId: string; url: string }[];
 };
@@ -48,6 +51,13 @@ export function parseItemPayload(raw: unknown, partial = false): Partial<ItemPay
   // A "give away if unsold" fallback only makes sense for items that are for sale —
   // a GIVE item is already free, so force the flag off in that case.
   if (out.type === "GIVE") out.giveIfUnsold = false;
+
+  if (b.markReduced !== undefined) {
+    if (typeof b.markReduced !== "boolean") throw new Error("Bad markReduced");
+    out.markReduced = b.markReduced;
+  }
+  // A free item has no price to mark down, so a reduction never applies.
+  if (out.type === "GIVE") out.markReduced = false;
 
   if (b.condition !== undefined) {
     if (b.condition === null || b.condition === "") {

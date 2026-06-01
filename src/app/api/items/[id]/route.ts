@@ -70,14 +70,26 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
   try {
     await prisma.$transaction(async (tx) => {
-    // Record a "was" price only when the seller actually cut the price; clear it otherwise
-    // so a later price increase doesn't leave a stale strikethrough.
+    // The struck-through "was" price is opt-in: the seller ticks "mark as price
+    // reduction" in the form. Lowering the price alone is not enough. We record a
+    // previous price only when they ask for it AND there's a higher price to show;
+    // otherwise we clear it so no stale strikethrough lingers. `undefined` leaves the
+    // column untouched (e.g. an admin moderating status without touching price).
     let previousPriceIls: number | null | undefined = undefined;
-    if (payload.priceIls !== undefined && payload.priceIls !== found.priceIls) {
-      previousPriceIls =
-        payload.priceIls != null && payload.priceIls < (found.priceIls ?? Infinity)
-          ? found.priceIls
-          : null;
+    if (payload.markReduced !== undefined || payload.priceIls !== undefined) {
+      const newPrice = payload.priceIls !== undefined ? payload.priceIls : found.priceIls;
+      if (payload.markReduced && newPrice != null) {
+        // Prefer the price we're cutting from on this edit; otherwise keep an already
+        // recorded previous price as long as it's still higher than the new price.
+        const cutFrom = found.priceIls != null && found.priceIls > newPrice ? found.priceIls : null;
+        const kept =
+          found.previousPriceIls != null && found.previousPriceIls > newPrice
+            ? found.previousPriceIls
+            : null;
+        previousPriceIls = cutFrom ?? kept;
+      } else {
+        previousPriceIls = null;
+      }
     }
 
     await tx.item.update({

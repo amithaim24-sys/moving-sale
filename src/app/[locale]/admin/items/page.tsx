@@ -33,12 +33,7 @@ export default async function AdminItemsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("admin.items")}</h1>
-        <Link href={`/${locale}/admin/users`} className="btn-secondary text-sm">
-          {t("admin.users")}
-        </Link>
-      </div>
+      <h1 className="text-2xl font-bold">{t("admin.items")}</h1>
       <ul className="divide-y rounded-2xl bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 dark:divide-slate-800">
         {items.map((item) => (
           <li key={item.id} className="flex items-center gap-4 p-4">
