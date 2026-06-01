@@ -48,6 +48,12 @@ export default async function EditItemPage({
           condition: (item.condition as ItemCondition | null) ?? null,
           priceIls: item.priceIls,
           giveIfUnsold: item.giveIfUnsold,
+          // Pre-check the box when the item already displays a reduction, so editing
+          // unrelated fields preserves it.
+          markReduced:
+            item.previousPriceIls != null &&
+            item.priceIls != null &&
+            item.previousPriceIls > item.priceIls,
           status: item.status as ListingStatus,
           images: item.images.map((i) => ({ cloudinaryPublicId: i.cloudinaryPublicId, url: i.url })),
         }}

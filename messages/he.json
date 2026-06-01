@@ -69,6 +69,8 @@
     "condition": "מצב",
     "price": "מחיר (₪)",
     "priceHelp": "השאר ריק לפריטים חינם",
+    "markReduced": "סימון כהורדת מחיר",
+    "markReducedHelp": "הצגת המחיר הישן עם קו חוצה לצד המחיר החדש. הורדת המחיר לא תוצג ככה אלא אם מסמנים את התיבה.",
     "status": "סטטוס",
     "images": "תמונות",
     "addImage": "הוספת תמונה",
@@ -147,6 +149,7 @@
     "error": "העדכון נכשל. אנא נסו שוב."
   },
   "admin": {
+    "dashboard": "סקירה",
     "users": "משתמשים",
     "items": "כל הפריטים",
     "role": "תפקיד",
@@ -155,7 +158,35 @@
     "ban": "חסום",
     "unban": "בטל חסימה",
     "hide": "הסתר",
-    "show": "הצג"
+    "show": "הצג",
+    "metrics": {
+      "title": "סקירת האתר",
+      "sectionUsers": "משתמשים",
+      "sectionItems": "פריטים",
+      "sectionEngagement": "מעורבות",
+      "sectionRevenue": "הכנסות",
+      "users": "סך המשתמשים",
+      "newUsers30": "משתמשים חדשים (30 ימים)",
+      "admins": "מנהלים",
+      "banned": "חסומים",
+      "items": "סך הפריטים",
+      "newItems30": "פריטים חדשים (30 ימים)",
+      "available": "זמינים",
+      "reserved": "שמורים",
+      "sold": "נמכרו",
+      "hidden": "מוסתרים",
+      "draft": "טיוטות",
+      "forSale": "למכירה",
+      "givingAway": "למסירה",
+      "reducedItems": "במחיר מוזל",
+      "totalViews": "סך הצפיות",
+      "totalLikes": "פריטים שמורים",
+      "signups": "נרשמים לקבלה בחינם",
+      "potentialRevenue": "הכנסה אפשרית",
+      "potentialRevenueHint": "סך המחירים של פריטים שעדיין זמינים למכירה.",
+      "realizedRevenue": "שווי שנמכר",
+      "realizedRevenueHint": "סך המחירים של פריטים שסומנו כנמכרו."
+    }
   },
   "banned": {
     "title": "החשבון שלך הושעה",

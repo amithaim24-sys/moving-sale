@@ -69,6 +69,8 @@
     "condition": "Condition",
     "price": "Price (ILS)",
     "priceHelp": "Leave empty for free items",
+    "markReduced": "Mark as a price reduction",
+    "markReducedHelp": "Show the old price struck through next to the new one. Lowering the price won't show this unless you tick the box.",
     "status": "Status",
     "images": "Photos",
     "addImage": "Add photo",
@@ -147,6 +149,7 @@
     "error": "Couldn't update. Please try again."
   },
   "admin": {
+    "dashboard": "Dashboard",
     "users": "Users",
     "items": "All items",
     "role": "Role",
@@ -155,7 +158,35 @@
     "ban": "Ban",
     "unban": "Unban",
     "hide": "Hide",
-    "show": "Show"
+    "show": "Show",
+    "metrics": {
+      "title": "Site overview",
+      "sectionUsers": "Users",
+      "sectionItems": "Items",
+      "sectionEngagement": "Engagement",
+      "sectionRevenue": "Revenue",
+      "users": "Total users",
+      "newUsers30": "New users (30d)",
+      "admins": "Admins",
+      "banned": "Banned",
+      "items": "Total items",
+      "newItems30": "New items (30d)",
+      "available": "Available",
+      "reserved": "Reserved",
+      "sold": "Sold",
+      "hidden": "Hidden",
+      "draft": "Drafts",
+      "forSale": "For sale",
+      "givingAway": "Giving away",
+      "reducedItems": "Price-reduced",
+      "totalViews": "Total views",
+      "totalLikes": "Saved items",
+      "signups": "Free-if-unsold signups",
+      "potentialRevenue": "Potential revenue",
+      "potentialRevenueHint": "Total price of items still available for sale.",
+      "realizedRevenue": "Sold value",
+      "realizedRevenueHint": "Total price of items marked sold."
+    }
   },
   "banned": {
     "title": "Your account has been suspended",

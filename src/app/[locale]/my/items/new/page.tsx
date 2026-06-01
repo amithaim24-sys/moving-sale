@@ -32,6 +32,7 @@ export default async function NewItemPage({
           condition: null,
           priceIls: null,
           giveIfUnsold: false,
+          markReduced: false,
           status: "AVAILABLE",
           images: [],
         }}
