@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import ItemImageUploader, { type UploadedImage } from "./ItemImageUploader";
 import WhatsAppPhoneSidebar from "./WhatsAppPhoneSidebar";
@@ -39,6 +39,24 @@ export default function ItemForm({
   const [error, setError] = useState<string | null>(null);
   const [hasPhone, setHasPhone] = useState(!needsPhone);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Snapshot of the form as first rendered, so we can detect unsaved edits.
+  const initialSnapshot = useMemo(() => JSON.stringify(initial), [initial]);
+  // Set once the user successfully saves, so leaving afterwards doesn't warn.
+  const savedRef = useRef(false);
+
+  const isDirty = !savedRef.current && JSON.stringify(values) !== initialSnapshot;
+
+  // Warn before the tab is closed, reloaded, or navigated away while edits are unsaved.
+  // This protects work like uploaded photos and typed descriptions from accidental loss.
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   function set<K extends keyof ItemFormValues>(k: K, v: ItemFormValues[K]) {
     setValues((p) => ({ ...p, [k]: v }));
@@ -70,6 +88,7 @@ export default function ItemForm({
         toast.show(msg, "error");
         return;
       }
+      savedRef.current = true;
       toast.show(t("form.saved"));
       router.push(`/${locale}/my/items`);
       router.refresh();
@@ -103,6 +122,7 @@ export default function ItemForm({
         toast.show(msg, "error");
         return;
       }
+      savedRef.current = true;
       router.push(`/${locale}/my/items`);
       router.refresh();
     } catch {

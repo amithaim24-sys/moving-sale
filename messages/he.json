@@ -17,7 +17,12 @@
     "all": "הכל",
     "sell": "למכירה",
     "give": "חינם",
-    "searchPlaceholder": "חיפוש פריטים..."
+    "searchPlaceholder": "חיפוש פריטים...",
+    "clearSearch": "ניקוי חיפוש",
+    "resultsForQuery": "{count, plural, =0 {אין פריטים התואמים ל“{query}”} one {פריט אחד תואם ל“{query}”} other {# פריטים תואמים ל“{query}”}}",
+    "noResultsTitle": "אין תוצאות",
+    "noResultsHint": "נסו חיפוש אחר או נקו את הסינון.",
+    "clearFilters": "ניקוי סינון"
   },
   "item": {
     "free": "חינם",
@@ -99,7 +104,8 @@
     "saved": "נשמר",
     "needPhone": "יש להוסיף מספר WhatsApp כדי לפרסם. אפשר לשמור כטיוטה בינתיים.",
     "consentWhatsApp": "אני מסכים/ה לשתף את מספר ה-WhatsApp שלי עם קונים כדי שיוכלו לשלוח לי הודעות לגבי הפריטים שלי.",
-    "consentRequired": "יש לאשר את שיתוף מספר ה-WhatsApp כדי לשמור אותו."
+    "consentRequired": "יש לאשר את שיתוף מספר ה-WhatsApp כדי לשמור אותו.",
+    "unsavedChanges": "יש לך שינויים שלא נשמרו. לצאת בלי לשמור?"
   },
   "my": {
     "potentialIncome": "הכנסה אפשרית ממכירות",

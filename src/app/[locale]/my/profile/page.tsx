@@ -34,6 +34,8 @@ export default async function ProfilePage({
           cityPlaceholder: t("form.cityPlaceholder"),
           save: t("form.save"),
           saved: t("form.saved"),
+          consentWhatsApp: t("form.consentWhatsApp"),
+          consentRequired: t("form.consentRequired"),
         }}
       />
     </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { csrfBlock } from "@/lib/security";
+import { csrfBlock, rateLimitBlock } from "@/lib/security";
 
 export async function PATCH(req: Request) {
   const blocked = csrfBlock(req);
@@ -9,6 +9,8 @@ export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
   if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
+  const limited = rateLimitBlock(`profile:${session.user.id}`, 20, 60_000);
+  if (limited) return limited;
 
   let body: { name?: string; whatsappPhone?: string; city?: string };
   try {

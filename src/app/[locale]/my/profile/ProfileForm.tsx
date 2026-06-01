@@ -17,20 +17,31 @@ export default function ProfileForm({
     cityPlaceholder: string;
     save: string;
     saved: string;
+    consentWhatsApp: string;
+    consentRequired: string;
   };
 }) {
   const toast = useToast();
+  const hadPhone = !!(initial.whatsappPhone && initial.whatsappPhone.length > 0);
   const [name, setName] = useState(initial.name);
   const [city, setCity] = useState(initial.city);
   const [phone, setPhone] = useState(
-    initial.whatsappPhone && initial.whatsappPhone.length > 0
-      ? initial.whatsappPhone
-      : DEFAULT_PHONE_PREFIX,
+    hadPhone ? initial.whatsappPhone : DEFAULT_PHONE_PREFIX,
   );
+  // Returning users who already shared a number are treated as having consented.
+  const [consent, setConsent] = useState(hadPhone);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
+  // A "real" phone is anything beyond the bare default prefix.
+  const phoneProvided = phone.trim() !== "" && phone.trim() !== DEFAULT_PHONE_PREFIX;
+  const needsConsent = phoneProvided && !consent;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (needsConsent) {
+      toast.show(labels.consentRequired, "error");
+      return;
+    }
     setStatus("saving");
     try {
       const res = await fetch("/api/profile", {
@@ -74,8 +85,20 @@ export default function ProfileForm({
           placeholder="+972501234567"
         />
       </div>
+      <label className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
+        <input
+          type="checkbox"
+          className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-800"
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
+        />
+        <span>{labels.consentWhatsApp}</span>
+      </label>
       <div className="flex items-center gap-3">
-        <button className="btn-primary disabled:opacity-60" disabled={status === "saving"}>
+        <button
+          className="btn-primary disabled:opacity-60"
+          disabled={status === "saving" || needsConsent}
+        >
           {status === "saving" && <Spinner />}
           {labels.save}
         </button>

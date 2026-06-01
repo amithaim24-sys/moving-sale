@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import ItemCard from "@/components/ItemCard";
+import CatalogSearch from "@/components/CatalogSearch";
 import EmptyState from "@/components/EmptyState";
 import { getOptionalUser } from "@/lib/guards";
 import type { Locale } from "@/i18n/config";
@@ -36,8 +37,16 @@ export default async function CatalogPage({
           }
         : {}),
     },
-    include: {
-      images: { orderBy: { sortOrder: "asc" }, take: 1 },
+    // Project only the columns ItemCard renders. Avoids hauling the (potentially
+    // large) `description` free-text and other unused columns across 60 rows.
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      priceIls: true,
+      previousPriceIls: true,
+      giveIfUnsold: true,
+      images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
       owner: { select: { name: true, whatsappPhone: true, city: true } },
       _count: { select: { images: true } },
     },
@@ -79,20 +88,11 @@ export default async function CatalogPage({
 
       {/* Search + filter bar. Sticky on desktop only; on mobile it just scrolls
           normally so iOS Safari's address-bar shenanigans don't pull it around. */}
-      <form
-        className="flex flex-col gap-2 md:sticky md:top-14 md:z-20 md:bg-slate-50/95 md:py-2 md:backdrop-blur md:dark:bg-slate-950/95"
-        action={`/${locale}`}
-      >
-        <label htmlFor="catalog-search" className="sr-only">
-          {t("filter.searchPlaceholder")}
-        </label>
-        <input
-          id="catalog-search"
-          type="text"
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder={t("filter.searchPlaceholder")}
-          className="field"
+      <div className="flex flex-col gap-2 md:sticky md:top-14 md:z-20 md:bg-slate-50/95 md:py-2 md:backdrop-blur md:dark:bg-slate-950/95">
+        <CatalogSearch
+          locale={locale}
+          type={type === "SELL" || type === "GIVE" ? type : undefined}
+          initialQuery={q ?? ""}
         />
         <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {filterOptions.map((opt) => {
@@ -116,15 +116,33 @@ export default async function CatalogPage({
             );
           })}
         </div>
-      </form>
+      </div>
+
+      {q && (
+        <p className="text-sm text-slate-600 dark:text-slate-400" aria-live="polite">
+          {t("filter.resultsForQuery", { count: items.length, query: q })}
+        </p>
+      )}
 
       {items.length === 0 ? (
-        <EmptyState
-          emoji="📦"
-          title={t("item.noItems")}
-          description={t("item.noItemsHint")}
-          cta={user ? { href: `/${locale}/my/items/new`, label: t("nav.newItem") } : undefined}
-        />
+        // A search or type filter is active: there ARE listings, this query just
+        // didn't match any. Offer to clear the filters rather than (misleadingly)
+        // inviting the user to "be the first to post".
+        q || type === "SELL" || type === "GIVE" ? (
+          <EmptyState
+            emoji="🔍"
+            title={t("filter.noResultsTitle")}
+            description={t("filter.noResultsHint")}
+            cta={{ href: `/${locale}`, label: t("filter.clearFilters") }}
+          />
+        ) : (
+          <EmptyState
+            emoji="📦"
+            title={t("item.noItems")}
+            description={t("item.noItemsHint")}
+            cta={user ? { href: `/${locale}/my/items/new`, label: t("nav.newItem") } : undefined}
+          />
+        )
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
           {items.map((item) => (
