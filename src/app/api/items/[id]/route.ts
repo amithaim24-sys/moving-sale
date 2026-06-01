@@ -4,16 +4,21 @@ import { prisma } from "@/lib/prisma";
 import { parseItemPayload } from "@/lib/validate";
 import { destroyImage } from "@/lib/cloudinary";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { canEditOwner } from "@/lib/collab";
 
-async function loadOwned(id: string, userId: string, isAdmin: boolean) {
+// Load an item the caller is allowed to act on. `isFullEditor` is true for the owner
+// and for collaborators the owner has invited — they may edit content and images.
+// An admin who is neither owner nor collaborator may only moderate status.
+async function loadEditable(id: string, userId: string, isAdmin: boolean) {
   const item = await prisma.item.findUnique({
     where: { id },
     include: { images: true },
   });
-  // Return 404 in both not-found and not-owned cases to avoid an ID-existence oracle.
+  // Return 404 in both not-found and not-allowed cases to avoid an ID-existence oracle.
   if (!item) return null;
-  if (!isAdmin && item.ownerId !== userId) return null;
-  return item;
+  const isFullEditor = await canEditOwner(userId, item.ownerId);
+  if (!isFullEditor && !isAdmin) return null;
+  return { item, isFullEditor };
 }
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -26,8 +31,9 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const limited = rateLimitBlock(`item-edit:${session.user.id}`, 40, 60_000);
   if (limited) return limited;
   const { id } = await ctx.params;
-  const found = await loadOwned(id, session.user.id, session.user.role === "ADMIN");
-  if (!found) return new NextResponse("Not found", { status: 404 });
+  const loaded = await loadEditable(id, session.user.id, session.user.role === "ADMIN");
+  if (!loaded) return new NextResponse("Not found", { status: 404 });
+  const found = loaded.item;
 
   let payload;
   try {
@@ -36,22 +42,22 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     return new NextResponse((e as Error).message, { status: 400 });
   }
 
-  // An admin acting on someone else's item may only moderate its status — never rewrite
-  // the seller's content or images. Strip everything but `status` in that case.
-  const isOwner = found.ownerId === session.user.id;
-  if (!isOwner) {
+  // An admin acting on an item they don't own/collaborate on may only moderate its
+  // status — never rewrite the seller's content or images. Strip all but `status`.
+  if (!loaded.isFullEditor) {
     payload = payload.status !== undefined ? { status: payload.status } : {};
   }
 
-  // If the owner is trying to publish (status != DRAFT) they must have a WhatsApp phone.
-  // Admins moderating someone else's item are exempt from the phone gate.
-  if (payload.status && payload.status !== "DRAFT" && isOwner) {
-    const me = await prisma.user.findUnique({
-      where: { id: session.user.id },
+  // Publishing (status != DRAFT) requires the OWNER to have a WhatsApp phone — the
+  // contact button uses the owner's number, not the editing collaborator's. Admins
+  // moderating someone else's item are exempt from the phone gate.
+  if (payload.status && payload.status !== "DRAFT" && loaded.isFullEditor) {
+    const owner = await prisma.user.findUnique({
+      where: { id: found.ownerId },
       select: { whatsappPhone: true, banned: true },
     });
-    if (!me || me.banned) return new NextResponse("Forbidden", { status: 403 });
-    if (!me.whatsappPhone) {
+    if (!owner || owner.banned) return new NextResponse("Forbidden", { status: 403 });
+    if (!owner.whatsappPhone) {
       // Silently downgrade to DRAFT rather than rejecting.
       payload.status = "DRAFT";
     }
@@ -130,8 +136,9 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
   const limited = rateLimitBlock(`item-delete:${session.user.id}`, 40, 60_000);
   if (limited) return limited;
   const { id } = await ctx.params;
-  const found = await loadOwned(id, session.user.id, session.user.role === "ADMIN");
-  if (!found) return new NextResponse("Not found", { status: 404 });
+  const loaded = await loadEditable(id, session.user.id, session.user.role === "ADMIN");
+  if (!loaded) return new NextResponse("Not found", { status: 404 });
+  const found = loaded.item;
 
   try {
     await prisma.item.delete({ where: { id } });

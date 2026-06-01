@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { requireUser } from "@/lib/guards";
+import { canEditOwner } from "@/lib/collab";
 import { prisma } from "@/lib/prisma";
 import ItemForm from "@/components/ItemForm";
 import type { Locale } from "@/i18n/config";
@@ -21,7 +22,9 @@ export default async function EditItemPage({
     include: { images: { orderBy: { sortOrder: "asc" } } },
   });
   if (!item) notFound();
-  if (item.ownerId !== user.id && user.role !== "ADMIN") redirect(`/${locale}`);
+  // Owners and the collaborators they invited may edit; admins may also reach it.
+  const mayEdit = (await canEditOwner(user.id, item.ownerId)) || user.role === "ADMIN";
+  if (!mayEdit) redirect(`/${locale}`);
 
   // A WhatsApp number is required to publish (the API silently downgrades to DRAFT
   // without one), so gate the Publish button on the owner actually having one.
