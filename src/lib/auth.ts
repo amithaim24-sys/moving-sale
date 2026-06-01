@@ -6,7 +6,14 @@ import type { Role } from "./types";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "database" },
+  session: {
+    strategy: "database",
+    // Sessions last a few hours, not the NextAuth default of 30 days.
+    maxAge: 4 * 60 * 60, // 4 hours
+    // Roll the expiry forward at most once an hour while the user is active, so an
+    // engaged user isn't logged out mid-session but an idle one expires within ~4h.
+    updateAge: 60 * 60, // 1 hour
+  },
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
