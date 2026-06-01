@@ -36,6 +36,14 @@
     "noPhone": "Seller has not set up WhatsApp yet",
     "signInToContact": "Sign in to contact the seller",
     "waMessage": "Hi! I'm interested in your item \"{title}\" — {url}",
+    "giveIfUnsold": {
+      "formLabel": "Give it away for free if it doesn't sell",
+      "formHelp": "Buyers will see a separate button to ask for it free. If nobody buys it, you can hand it to someone who asked instead of throwing it out.",
+      "badge": "Free if unsold",
+      "note": "The seller will give this away for free if it doesn't sell. Interested? Let them know.",
+      "contactCta": "Ask to receive it for free",
+      "waMessage": "Hi! I saw your item \"{title}\" ({url}). If it doesn't sell, I'd love to take it off your hands — could I have it? 🙏"
+    },
     "by": "by {name}",
     "viewsCount": "{count, plural, =0 {no views yet} one {# view} other {# views}}",
     "noItems": "No items yet.",
@@ -71,12 +79,17 @@
     "imageLoadError": "Could not load that image. Please try a different file.",
     "save": "Save",
     "optional": "optional",
+    "publish": "Publish",
     "saveDraft": "Save as draft",
+    "keepDraft": "Keep as draft",
+    "draftHint": "This item is a draft — it's not visible to buyers yet. Publish it to list it for sale.",
     "cancel": "Cancel",
     "delete": "Delete",
     "confirmDelete": "Delete this item permanently? This cannot be undone.",
     "edit": "Edit",
     "create": "Create item",
+    "markSold": "Mark as sold",
+    "markAvailable": "Mark as available",
     "phone": "WhatsApp number",
     "phoneHelp": "International format. Default is +972 (Israel).",
     "addPhone": "Add WhatsApp number",
@@ -84,7 +97,15 @@
     "city": "City / area",
     "cityPlaceholder": "e.g. Tel Aviv, Ramat Gan",
     "saved": "Saved",
-    "needPhone": "Add your WhatsApp number to publish. You can still save as a draft."
+    "needPhone": "Add your WhatsApp number to publish. You can still save as a draft.",
+    "consentWhatsApp": "I agree to share my WhatsApp number with buyers so they can message me about my items.",
+    "consentRequired": "Please agree to share your WhatsApp number to save it."
+  },
+  "my": {
+    "potentialIncome": "Potential income from sales",
+    "potentialIncomeHint": "Total price of your items still available for sale.",
+    "alreadySold": "Already sold",
+    "actionFailed": "Action failed"
   },
   "admin": {
     "users": "Users",

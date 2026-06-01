@@ -55,6 +55,7 @@ export default async function MyLikesPage({
                 type: item.type as "SELL" | "GIVE",
                 priceIls: item.priceIls,
                 previousPriceIls: item.previousPriceIls,
+                giveIfUnsold: item.giveIfUnsold,
                 images: item.images,
                 imageCount: item._count.images,
                 owner: item.owner,

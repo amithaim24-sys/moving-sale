@@ -15,6 +15,7 @@ export type ItemFormValues = {
   type: ListingType;
   condition: ItemCondition | null;
   priceIls: number | null;
+  giveIfUnsold: boolean;
   status: ListingStatus;
   images: UploadedImage[];
 };
@@ -53,6 +54,7 @@ export default function ItemForm({
       type: values.type,
       condition: values.condition,
       priceIls: values.type === "GIVE" ? null : values.priceIls,
+      giveIfUnsold: values.type === "GIVE" ? false : values.giveIfUnsold,
       status: forceStatus ?? values.status,
       images: values.images,
     };
@@ -82,6 +84,11 @@ export default function ItemForm({
 
   const submit = (e: React.FormEvent) => send(undefined, e);
   const submitDraft = () => send("DRAFT");
+  const submitPublish = () => send("AVAILABLE");
+
+  // When editing an item that's still a draft, publishing is the natural next step,
+  // so surface a dedicated Publish button instead of hiding it behind the status select.
+  const isDraft = itemId != null && values.status === "DRAFT";
 
   async function remove() {
     if (!itemId) return;
@@ -119,6 +126,12 @@ export default function ItemForm({
           >
             {t("form.addPhone")}
           </button>
+        </div>
+      )}
+
+      {isDraft && (
+        <div className="rounded-lg border border-sky-300 bg-sky-50 p-3 text-sm text-sky-800 dark:border-sky-800 dark:bg-sky-900/30 dark:text-sky-200">
+          {t("form.draftHint")}
         </div>
       )}
 
@@ -220,6 +233,27 @@ export default function ItemForm({
         </div>
       </div>
 
+      {values.type === "SELL" && (
+        <label
+          htmlFor="field-give-if-unsold"
+          className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-800 dark:bg-slate-800/40"
+        >
+          <input
+            id="field-give-if-unsold"
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+            checked={values.giveIfUnsold}
+            onChange={(e) => set("giveIfUnsold", e.target.checked)}
+          />
+          <span>
+            <span className="font-medium">{t("item.giveIfUnsold.formLabel")}</span>
+            <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+              {t("item.giveIfUnsold.formHelp")}
+            </span>
+          </span>
+        </label>
+      )}
+
       {itemId && (
         <div>
           <label htmlFor="field-status" className="label">{t("form.status")}</label>
@@ -242,20 +276,45 @@ export default function ItemForm({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
-          <button disabled={busy || !hasPhone} className="btn-primary disabled:opacity-60">
-            {busy && <Spinner />}
-            {t("form.save")}
-          </button>
-          {!itemId && (
-            <button
-              type="button"
-              onClick={submitDraft}
-              disabled={busy}
-              className="btn-secondary disabled:opacity-60"
-            >
-              {busy && <Spinner />}
-              {t("form.saveDraft")}
-            </button>
+          {isDraft ? (
+            <>
+              {/* Editing a draft: Publish is the primary action, keeping it a draft is secondary. */}
+              <button
+                type="button"
+                onClick={submitPublish}
+                disabled={busy || !hasPhone}
+                className="btn-primary disabled:opacity-60"
+              >
+                {busy && <Spinner />}
+                {t("form.publish")}
+              </button>
+              <button
+                type="button"
+                onClick={submitDraft}
+                disabled={busy}
+                className="btn-secondary disabled:opacity-60"
+              >
+                {t("form.keepDraft")}
+              </button>
+            </>
+          ) : (
+            <>
+              <button disabled={busy || !hasPhone} className="btn-primary disabled:opacity-60">
+                {busy && <Spinner />}
+                {t("form.save")}
+              </button>
+              {!itemId && (
+                <button
+                  type="button"
+                  onClick={submitDraft}
+                  disabled={busy}
+                  className="btn-secondary disabled:opacity-60"
+                >
+                  {busy && <Spinner />}
+                  {t("form.saveDraft")}
+                </button>
+              )}
+            </>
           )}
         </div>
         {itemId && (

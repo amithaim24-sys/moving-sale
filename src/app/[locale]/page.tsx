@@ -139,6 +139,7 @@ export default async function CatalogPage({
                 type: item.type as "SELL" | "GIVE",
                 priceIls: item.priceIls,
                 previousPriceIls: item.previousPriceIls,
+                giveIfUnsold: item.giveIfUnsold,
                 images: item.images,
                 imageCount: item._count.images,
                 // Only hand the seller's number to authenticated viewers.

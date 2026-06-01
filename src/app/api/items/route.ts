@@ -41,6 +41,7 @@ export async function POST(req: Request) {
         type: payload.type!,
         condition: payload.condition ?? null,
         priceIls: payload.priceIls ?? null,
+        giveIfUnsold: payload.giveIfUnsold ?? false,
         status,
         images: payload.images
           ? {

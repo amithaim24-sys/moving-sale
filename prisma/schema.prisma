@@ -76,6 +76,9 @@ model Item {
   condition   String?  // "NEW" | "LIKE_NEW" | "USED"
   priceIls    Int?
   previousPriceIls Int?
+  // For SELL items only: owner is willing to give it away free if it doesn't sell.
+  // When true, buyers see a separate "ask to receive it free" contact button.
+  giveIfUnsold Boolean @default(false)
   status      String   @default("AVAILABLE")
   viewCount   Int      @default(0)
   createdAt   DateTime @default(now())

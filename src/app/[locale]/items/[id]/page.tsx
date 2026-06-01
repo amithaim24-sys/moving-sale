@@ -157,7 +157,7 @@ export default async function ItemDetailPage({
           <p className="whitespace-pre-wrap text-slate-800 dark:text-slate-200">{item.description}</p>
         )}
 
-        <div className="sticky bottom-2 md:static">
+        <div className="sticky bottom-2 space-y-3 md:static">
           <WhatsAppButton
             phone={viewer ? item.owner.whatsappPhone : null}
             title={item.title}
@@ -165,6 +165,25 @@ export default async function ItemDetailPage({
             isLoggedIn={!!viewer}
             locale={locale}
           />
+
+          {/* "Give away if unsold" fallback: only for items still for sale. */}
+          {item.type === "SELL" && item.giveIfUnsold && (
+            <div className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/20">
+              <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                🎁 {t("item.giveIfUnsold.note")}
+              </p>
+              <WhatsAppButton
+                phone={viewer ? item.owner.whatsappPhone : null}
+                title={item.title}
+                itemUrl={itemUrl}
+                isLoggedIn={!!viewer}
+                locale={locale}
+                variant="outline"
+                label={t("item.giveIfUnsold.contactCta")}
+                message={t("item.giveIfUnsold.waMessage", { title: item.title, url: itemUrl })}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

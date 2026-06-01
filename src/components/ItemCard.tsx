@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import PriceOrFreeBadge from "./PriceOrFreeBadge";
 import WhatsAppIconButton from "./WhatsAppIconButton";
 import LikeButton from "./LikeButton";
@@ -11,6 +12,7 @@ export type ItemCardData = {
   type: ListingType;
   priceIls: number | null;
   previousPriceIls: number | null;
+  giveIfUnsold: boolean;
   images: { url: string }[];
   imageCount: number;
   owner: { name: string | null; whatsappPhone: string | null; city: string | null };
@@ -27,8 +29,10 @@ export default function ItemCard({
   liked: boolean;
   isLoggedIn: boolean;
 }) {
+  const t = useTranslations("item");
   const cover = item.images[0]?.url;
   const itemPath = `/${locale}/items/${item.id}`;
+  const showGiveBadge = item.type === "SELL" && item.giveIfUnsold;
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:shadow-md active:scale-[0.98] dark:bg-slate-900 dark:ring-slate-800">
@@ -66,6 +70,11 @@ export default function ItemCard({
           <div className="truncate text-sm font-medium">{item.title}</div>
           {item.owner.city && (
             <div className="truncate text-xs text-slate-500 dark:text-slate-400">{item.owner.city}</div>
+          )}
+          {showGiveBadge && (
+            <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+              🎁 {t("giveIfUnsold.badge")}
+            </span>
           )}
         </div>
       </Link>

@@ -23,19 +23,28 @@ export default async function EditItemPage({
   if (!item) notFound();
   if (item.ownerId !== user.id && user.role !== "ADMIN") redirect(`/${locale}`);
 
+  // A WhatsApp number is required to publish (the API silently downgrades to DRAFT
+  // without one), so gate the Publish button on the owner actually having one.
+  const dbUser = await prisma.user.findUnique({
+    where: { id: item.ownerId },
+    select: { whatsappPhone: true },
+  });
+  const needsPhone = !dbUser?.whatsappPhone;
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold">{t("form.edit")}</h1>
       <ItemForm
         itemId={item.id}
         locale={locale}
-        needsPhone={false}
+        needsPhone={needsPhone}
         initial={{
           title: item.title,
           description: item.description,
           type: item.type as ListingType,
           condition: (item.condition as ItemCondition | null) ?? null,
           priceIls: item.priceIls,
+          giveIfUnsold: item.giveIfUnsold,
           status: item.status as ListingStatus,
           images: item.images.map((i) => ({ cloudinaryPublicId: i.cloudinaryPublicId, url: i.url })),
         }}

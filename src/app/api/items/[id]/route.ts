@@ -80,6 +80,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
         ...(payload.condition !== undefined ? { condition: payload.condition } : {}),
         ...(payload.priceIls !== undefined ? { priceIls: payload.priceIls } : {}),
         ...(previousPriceIls !== undefined ? { previousPriceIls } : {}),
+        ...(payload.giveIfUnsold !== undefined ? { giveIfUnsold: payload.giveIfUnsold } : {}),
         ...(payload.status !== undefined ? { status: payload.status } : {}),
       },
     });

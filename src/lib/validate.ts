@@ -6,6 +6,7 @@ export type ItemPayload = {
   type: ListingType;
   condition: ItemCondition | null;
   priceIls: number | null;
+  giveIfUnsold: boolean;
   status?: ListingStatus;
   images?: { cloudinaryPublicId: string; url: string }[];
 };
@@ -39,6 +40,14 @@ export function parseItemPayload(raw: unknown, partial = false): Partial<ItemPay
     }
   }
   if (out.type === "GIVE") out.priceIls = null;
+
+  if (b.giveIfUnsold !== undefined) {
+    if (typeof b.giveIfUnsold !== "boolean") throw new Error("Bad giveIfUnsold");
+    out.giveIfUnsold = b.giveIfUnsold;
+  }
+  // A "give away if unsold" fallback only makes sense for items that are for sale —
+  // a GIVE item is already free, so force the flag off in that case.
+  if (out.type === "GIVE") out.giveIfUnsold = false;
 
   if (b.condition !== undefined) {
     if (b.condition === null || b.condition === "") {
