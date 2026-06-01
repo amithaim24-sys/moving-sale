@@ -13,6 +13,7 @@ export default function AdminNav({ locale }: { locale: string }) {
   const tabs = [
     { href: `/${locale}/admin`, label: t("dashboard"), exact: true },
     { href: `/${locale}/admin/items`, label: t("items") },
+    { href: `/${locale}/admin/views`, label: t("viewsTab") },
     { href: `/${locale}/admin/users`, label: t("users") },
   ];
 

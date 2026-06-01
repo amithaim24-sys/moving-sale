@@ -152,6 +152,7 @@
     "dashboard": "Dashboard",
     "users": "Users",
     "items": "All items",
+    "viewsTab": "Views",
     "role": "Role",
     "promote": "Make admin",
     "demote": "Remove admin",
@@ -179,6 +180,7 @@
       "forSale": "For sale",
       "givingAway": "Giving away",
       "reducedItems": "Price-reduced",
+      "loggedViews": "Signed-in views",
       "totalViews": "Total views",
       "totalLikes": "Saved items",
       "signups": "Free-if-unsold signups",
@@ -186,6 +188,25 @@
       "potentialRevenueHint": "Total price of items still available for sale.",
       "realizedRevenue": "Sold value",
       "realizedRevenueHint": "Total price of items marked sold."
+    },
+    "charts": {
+      "viewsTrend": "Views · last 30 days",
+      "listingsTrend": "New listings · last 30 days",
+      "itemsByStatus": "Items by status",
+      "itemsByType": "Items by type"
+    },
+    "activity": {
+      "recentViews": "Recent views",
+      "mostViewed": "Most viewed items",
+      "viewAll": "View all",
+      "none": "No views recorded yet."
+    },
+    "viewsPage": {
+      "title": "Item views",
+      "subtitle": "Which signed-in user viewed which item, most recent first (last 200).",
+      "colUser": "User",
+      "colItem": "Item",
+      "colWhen": "Viewed"
     }
   },
   "banned": {

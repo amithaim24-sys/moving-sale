@@ -103,9 +103,16 @@ export default async function ItemDetailPage({
   const signupEligible = item.type === "SELL" && item.giveIfUnsold;
   const [, likedRow, signupRow] = await Promise.all([
     shouldCountView
-      ? prisma.item
-          .update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } })
-          .catch(() => {})
+      ? Promise.all([
+          // Aggregate counter (includes anonymous visitors).
+          prisma.item
+            .update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } })
+            .catch(() => {}),
+          // Attributable view log — only for signed-in viewers (admin analytics).
+          viewer
+            ? prisma.itemView.create({ data: { itemId: item.id, userId: viewer.id } }).catch(() => {})
+            : Promise.resolve(),
+        ])
       : Promise.resolve(),
     viewer
       ? prisma.itemLike.findUnique({

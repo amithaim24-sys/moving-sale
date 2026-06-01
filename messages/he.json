@@ -152,6 +152,7 @@
     "dashboard": "סקירה",
     "users": "משתמשים",
     "items": "כל הפריטים",
+    "viewsTab": "צפיות",
     "role": "תפקיד",
     "promote": "הפוך למנהל",
     "demote": "הסר ניהול",
@@ -179,6 +180,7 @@
       "forSale": "למכירה",
       "givingAway": "למסירה",
       "reducedItems": "במחיר מוזל",
+      "loggedViews": "צפיות מחוברים",
       "totalViews": "סך הצפיות",
       "totalLikes": "פריטים שמורים",
       "signups": "נרשמים לקבלה בחינם",
@@ -186,6 +188,25 @@
       "potentialRevenueHint": "סך המחירים של פריטים שעדיין זמינים למכירה.",
       "realizedRevenue": "שווי שנמכר",
       "realizedRevenueHint": "סך המחירים של פריטים שסומנו כנמכרו."
+    },
+    "charts": {
+      "viewsTrend": "צפיות · 30 הימים האחרונים",
+      "listingsTrend": "פריטים חדשים · 30 הימים האחרונים",
+      "itemsByStatus": "פריטים לפי סטטוס",
+      "itemsByType": "פריטים לפי סוג"
+    },
+    "activity": {
+      "recentViews": "צפיות אחרונות",
+      "mostViewed": "הפריטים הנצפים ביותר",
+      "viewAll": "הצג הכל",
+      "none": "עדיין לא נרשמו צפיות."
+    },
+    "viewsPage": {
+      "title": "צפיות בפריטים",
+      "subtitle": "איזה משתמש מחובר צפה באיזה פריט, מהחדש לישן (200 האחרונות).",
+      "colUser": "משתמש",
+      "colItem": "פריט",
+      "colWhen": "נצפה"
     }
   },
   "banned": {
