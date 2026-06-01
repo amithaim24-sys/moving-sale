@@ -34,6 +34,8 @@ model User {
   collaboratingFor Collaborator[] @relation("CollaboratorOf")
   // "Give if unsold" items this user signed up to receive.
   giveIfUnsoldSignups GiveIfUnsoldSignup[]
+  // Per-visit log of items this user has viewed (admin analytics).
+  itemViews ItemView[]
 }
 
 // Account-level edit sharing: the owner grants a collaborator edit access to ALL
@@ -123,9 +125,27 @@ model Item {
   images      ItemImage[]
   likes       ItemLike[]
   giveIfUnsoldSignups GiveIfUnsoldSignup[]
+  views       ItemView[]
 
   @@index([status, createdAt])
   @@index([ownerId])
+}
+
+// Append-only log of which signed-in user viewed which item, and when. Powers the
+// admin analytics ("who viewed what" + views-over-time). Anonymous views are not
+// recorded here — only the aggregate Item.viewCount counts those.
+model ItemView {
+  id        String   @id @default(cuid())
+  itemId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, createdAt])
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }
 
 model ItemLike {
