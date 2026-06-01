@@ -17,8 +17,14 @@ export default async function AdminItemsPage({
   await requireAdmin();
 
   const items = await prisma.item.findMany({
-    include: {
-      images: { take: 1, orderBy: { sortOrder: "asc" } },
+    // Project only the columns this list renders. Avoids hauling the (potentially
+    // large) `description` free-text and other unused columns across up to 200 rows.
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      viewCount: true,
+      images: { take: 1, orderBy: { sortOrder: "asc" }, select: { url: true } },
       owner: { select: { email: true, name: true } },
     },
     orderBy: { createdAt: "desc" },

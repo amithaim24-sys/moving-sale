@@ -77,11 +77,12 @@ export default async function ItemDetailPage({
   setRequestLocale(locale);
   const t = await getTranslations();
 
-  const item = await getItem(id);
+  // The listing and the viewer's session are independent lookups — fetch them
+  // concurrently instead of serializing two round-trips on this hot page.
+  const [item, viewer] = await Promise.all([getItem(id), getOptionalUser()]);
 
   if (!item) notFound();
 
-  const viewer = await getOptionalUser();
   const isOwner = !!viewer && viewer.id === item.owner.id;
   const isAdmin = !!viewer && viewer.role === "ADMIN";
 
@@ -90,20 +91,25 @@ export default async function ItemDetailPage({
   // Drafts are owner-only (admins may also view for moderation).
   if (item.status === "DRAFT" && !isOwner && !isAdmin) redirect(`/${locale}`);
 
-  // Count public views. Skip owner and admin to keep the metric meaningful.
-  // Awaited so the write actually flushes before the serverless function returns.
-  if (!isOwner && !isAdmin && item.status === "AVAILABLE") {
-    await prisma.item
-      .update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } })
-      .catch(() => {});
-  }
-
-  const liked = viewer
-    ? !!(await prisma.itemLike.findUnique({
-        where: { userId_itemId: { userId: viewer.id, itemId: item.id } },
-        select: { id: true },
-      }))
-    : false;
+  // Count public views (skip owner/admin to keep the metric meaningful) and look up
+  // whether the viewer already liked this item. The two writes/reads are independent,
+  // so run them concurrently rather than back-to-back. The increment is awaited so the
+  // write flushes before the serverless function returns.
+  const shouldCountView = !isOwner && !isAdmin && item.status === "AVAILABLE";
+  const [, likedRow] = await Promise.all([
+    shouldCountView
+      ? prisma.item
+          .update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } })
+          .catch(() => {})
+      : Promise.resolve(),
+    viewer
+      ? prisma.itemLike.findUnique({
+          where: { userId_itemId: { userId: viewer.id, itemId: item.id } },
+          select: { id: true },
+        })
+      : Promise.resolve(null),
+  ]);
+  const liked = !!likedRow;
 
   // Build the share URL from a trusted configured base, not attacker-controllable
   // forwarded headers. Fall back to request headers only if no base URL is set.

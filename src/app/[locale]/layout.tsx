@@ -1,6 +1,7 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { locales, dirOf, type Locale } from "@/i18n/config";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
@@ -26,11 +27,15 @@ export default async function LocaleLayout({
   const messages = await getMessages();
   const t = await getTranslations("a11y");
   const user = await getOptionalUser();
+  // Per-request CSP nonce minted in middleware; applied to our one inline script so it
+  // runs under the strict (no 'unsafe-inline') script-src policy.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <html lang={locale} dir={dirOf(locale as Locale)} suppressHydrationWarning>
       <head>
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`,
           }}

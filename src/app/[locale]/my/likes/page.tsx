@@ -18,10 +18,18 @@ export default async function MyLikesPage({
   const likes = await prisma.itemLike.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
-    include: {
+    select: {
       item: {
-        include: {
-          images: { orderBy: { sortOrder: "asc" }, take: 1 },
+        // Only the columns ItemCard needs, plus `status` for the visibility filter.
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          priceIls: true,
+          previousPriceIls: true,
+          giveIfUnsold: true,
+          status: true,
+          images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
           owner: { select: { name: true, whatsappPhone: true, city: true } },
           _count: { select: { images: true } },
         },

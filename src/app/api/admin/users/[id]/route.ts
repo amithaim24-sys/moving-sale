@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { csrfBlock } from "@/lib/security";
+import { csrfBlock, rateLimitBlock } from "@/lib/security";
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const blocked = csrfBlock(req);
@@ -9,6 +9,8 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const session = await auth();
   if (!session?.user || session.user.role !== "ADMIN" || session.user.banned)
     return new NextResponse("Forbidden", { status: 403 });
+  const limited = rateLimitBlock(`admin-user:${session.user.id}`, 60, 60_000);
+  if (limited) return limited;
 
   const { id } = await ctx.params;
   let body: { role?: string; banned?: boolean };

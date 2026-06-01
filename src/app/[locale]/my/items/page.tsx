@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireUser } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import PriceOrFreeBadge from "@/components/PriceOrFreeBadge";
+import MyItemActions from "./MyItemActions";
 import type { Locale } from "@/i18n/config";
 
 export default async function MyItemsPage({
@@ -17,9 +18,31 @@ export default async function MyItemsPage({
   const user = await requireUser();
   const items = await prisma.item.findMany({
     where: { ownerId: user.id },
-    include: { images: { take: 1, orderBy: { sortOrder: "asc" } } },
+    // Project only the columns this list renders (the income summary needs type,
+    // priceIls and status). Avoids hauling the (potentially large) `description`
+    // free-text and other unused columns across every owned listing.
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      priceIls: true,
+      previousPriceIls: true,
+      status: true,
+      viewCount: true,
+      images: { take: 1, orderBy: { sortOrder: "asc" }, select: { url: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
+
+  // Possible income = sum of prices of priced (SELL) items still available to sell.
+  // "Already sold" tracks what those SELL items have brought in once marked SOLD.
+  const sellItems = items.filter((i) => i.type === "SELL" && i.priceIls != null);
+  const potentialIncome = sellItems
+    .filter((i) => i.status !== "SOLD")
+    .reduce((sum, i) => sum + (i.priceIls ?? 0), 0);
+  const alreadySold = sellItems
+    .filter((i) => i.status === "SOLD")
+    .reduce((sum, i) => sum + (i.priceIls ?? 0), 0);
 
   return (
     <div className="space-y-6">
@@ -29,6 +52,28 @@ export default async function MyItemsPage({
           + {t("nav.newItem")}
         </Link>
       </div>
+      {sellItems.length > 0 && (
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 dark:bg-amber-900/20 dark:ring-amber-800/60">
+          <div>
+            <div className="text-sm font-medium text-amber-900 dark:text-amber-100">
+              {t("my.potentialIncome")}
+            </div>
+            <div className="text-xs text-amber-700/80 dark:text-amber-200/70">
+              {t("my.potentialIncomeHint")}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">
+              {t("item.ils", { price: potentialIncome })}
+            </div>
+            {alreadySold > 0 && (
+              <div className="text-xs text-emerald-700 dark:text-emerald-400">
+                {t("my.alreadySold")}: {t("item.ils", { price: alreadySold })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {items.length === 0 ? (
         <p className="text-slate-500">{t("item.noItems")}</p>
       ) : (
@@ -52,9 +97,19 @@ export default async function MyItemsPage({
                 priceIls={item.priceIls}
                 previousPriceIls={item.previousPriceIls}
               />
-              <Link href={`/${locale}/my/items/${item.id}/edit`} className="btn-secondary text-sm">
-                {t("form.edit")}
-              </Link>
+              <MyItemActions
+                id={item.id}
+                editHref={`/${locale}/my/items/${item.id}/edit`}
+                isSold={item.status === "SOLD"}
+                labels={{
+                  edit: t("form.edit"),
+                  markSold: t("form.markSold"),
+                  markAvailable: t("form.markAvailable"),
+                  delete: t("form.delete"),
+                  confirmDelete: t("form.confirmDelete"),
+                  actionFailed: t("my.actionFailed"),
+                }}
+              />
             </li>
           ))}
         </ul>

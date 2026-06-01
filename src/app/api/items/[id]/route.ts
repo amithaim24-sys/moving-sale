@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseItemPayload } from "@/lib/validate";
 import { destroyImage } from "@/lib/cloudinary";
-import { csrfBlock } from "@/lib/security";
+import { csrfBlock, rateLimitBlock } from "@/lib/security";
 
 async function loadOwned(id: string, userId: string, isAdmin: boolean) {
   const item = await prisma.item.findUnique({
@@ -22,6 +22,9 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
   if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
+  // Edits trigger DB writes plus Cloudinary deletes; cap them per account.
+  const limited = rateLimitBlock(`item-edit:${session.user.id}`, 40, 60_000);
+  if (limited) return limited;
   const { id } = await ctx.params;
   const found = await loadOwned(id, session.user.id, session.user.role === "ADMIN");
   if (!found) return new NextResponse("Not found", { status: 404 });
@@ -124,6 +127,8 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
   const session = await auth();
   if (!session?.user) return new NextResponse("Unauthorized", { status: 401 });
   if (session.user.banned) return new NextResponse("Forbidden", { status: 403 });
+  const limited = rateLimitBlock(`item-delete:${session.user.id}`, 40, 60_000);
+  if (limited) return limited;
   const { id } = await ctx.params;
   const found = await loadOwned(id, session.user.id, session.user.role === "ADMIN");
   if (!found) return new NextResponse("Not found", { status: 404 });

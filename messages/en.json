@@ -17,7 +17,12 @@
     "all": "All",
     "sell": "For sale",
     "give": "Free",
-    "searchPlaceholder": "Search items..."
+    "searchPlaceholder": "Search items...",
+    "clearSearch": "Clear search",
+    "resultsForQuery": "{count, plural, =0 {No items match “{query}”} one {1 item matching “{query}”} other {# items matching “{query}”}}",
+    "noResultsTitle": "No matches",
+    "noResultsHint": "Try a different search or clear your filters.",
+    "clearFilters": "Clear filters"
   },
   "item": {
     "free": "Free",
@@ -99,7 +104,8 @@
     "saved": "Saved",
     "needPhone": "Add your WhatsApp number to publish. You can still save as a draft.",
     "consentWhatsApp": "I agree to share my WhatsApp number with buyers so they can message me about my items.",
-    "consentRequired": "Please agree to share your WhatsApp number to save it."
+    "consentRequired": "Please agree to share your WhatsApp number to save it.",
+    "unsavedChanges": "You have unsaved changes. Leave without saving?"
   },
   "my": {
     "potentialIncome": "Potential income from sales",
