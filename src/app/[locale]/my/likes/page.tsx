@@ -28,6 +28,7 @@ export default async function MyLikesPage({
           priceIls: true,
           previousPriceIls: true,
           giveIfUnsold: true,
+          condition: true,
           status: true,
           images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
           owner: { select: { name: true, whatsappPhone: true, city: true } },
@@ -64,6 +65,7 @@ export default async function MyLikesPage({
                 priceIls: item.priceIls,
                 previousPriceIls: item.previousPriceIls,
                 giveIfUnsold: item.giveIfUnsold,
+                condition: item.condition,
                 images: item.images,
                 imageCount: item._count.images,
                 // Number stays server-side; contact goes through the redirect endpoint.

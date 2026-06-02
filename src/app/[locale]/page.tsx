@@ -46,6 +46,7 @@ export default async function CatalogPage({
       priceIls: true,
       previousPriceIls: true,
       giveIfUnsold: true,
+      condition: true,
       images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
       owner: { select: { name: true, whatsappPhone: true, city: true } },
       _count: { select: { images: true } },
@@ -158,6 +159,7 @@ export default async function CatalogPage({
                 priceIls: item.priceIls,
                 previousPriceIls: item.previousPriceIls,
                 giveIfUnsold: item.giveIfUnsold,
+                condition: item.condition,
                 images: item.images,
                 imageCount: item._count.images,
                 // The number never reaches the client — contact goes through the

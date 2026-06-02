@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import PriceOrFreeBadge from "./PriceOrFreeBadge";
 import WhatsAppIconButton from "./WhatsAppIconButton";
 import LikeButton from "./LikeButton";
+import ConditionBadge from "./ConditionBadge";
 import type { ListingType } from "@/lib/types";
 
 export type ItemCardData = {
@@ -13,6 +14,7 @@ export type ItemCardData = {
   priceIls: number | null;
   previousPriceIls: number | null;
   giveIfUnsold: boolean;
+  condition: string | null;
   images: { url: string }[];
   imageCount: number;
   owner: { name: string | null; hasPhone: boolean; city: string | null };
@@ -33,6 +35,8 @@ export default function ItemCard({
   const cover = item.images[0]?.url;
   const itemPath = `/${locale}/items/${item.id}`;
   const showGiveBadge = item.type === "SELL" && item.giveIfUnsold;
+  // Only NEW gets flagged in the catalog — it's the headline state buyers scan for.
+  const showNewBadge = item.condition === "NEW";
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:shadow-md active:scale-[0.98] dark:bg-slate-900 dark:ring-slate-800">
@@ -44,6 +48,11 @@ export default function ItemCard({
           locale={locale}
         />
       </div>
+      {showNewBadge && (
+        <div className="absolute start-2 top-2 z-10">
+          <ConditionBadge condition="NEW" />
+        </div>
+      )}
       <Link href={itemPath} className="block">
         <div className="relative aspect-square w-full bg-slate-100 dark:bg-slate-800">
           {cover ? (
