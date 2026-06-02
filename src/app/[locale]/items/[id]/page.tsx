@@ -10,6 +10,7 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import GiveIfUnsoldSignupButton from "@/components/GiveIfUnsoldSignupButton";
 import LikeButton from "@/components/LikeButton";
 import ItemGallery from "@/components/ItemGallery";
+import ConditionBadge from "@/components/ConditionBadge";
 import { getOptionalUser } from "@/lib/guards";
 import type { Locale } from "@/i18n/config";
 
@@ -168,10 +169,14 @@ export default async function ItemDetailPage({
             />
           </div>
         </div>
+        {item.condition && (
+          <div>
+            <ConditionBadge condition={item.condition} />
+          </div>
+        )}
         <p className="text-sm text-slate-500 dark:text-slate-400">
           {t("item.by", { name: item.owner.name ?? "—" })}
           {item.owner.city ? ` · ${item.owner.city}` : ""}
-          {item.condition ? ` · ${t(`item.condition.${item.condition as "NEW"}`)}` : ""}
         </p>
         {(isOwner || isAdmin) && (
           <p className="text-xs text-slate-500 dark:text-slate-400">
