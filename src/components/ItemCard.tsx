@@ -15,7 +15,7 @@ export type ItemCardData = {
   giveIfUnsold: boolean;
   images: { url: string }[];
   imageCount: number;
-  owner: { name: string | null; whatsappPhone: string | null; city: string | null };
+  owner: { name: string | null; hasPhone: boolean; city: string | null };
 };
 
 export default function ItemCard({
@@ -85,9 +85,8 @@ export default function ItemCard({
           previousPriceIls={item.previousPriceIls}
         />
         <WhatsAppIconButton
-          phone={item.owner.whatsappPhone}
-          title={item.title}
-          itemPath={itemPath}
+          itemId={item.id}
+          hasPhone={item.owner.hasPhone}
           isLoggedIn={isLoggedIn}
           locale={locale}
         />

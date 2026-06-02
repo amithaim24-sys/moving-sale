@@ -2,7 +2,6 @@ import { cache } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import PriceOrFreeBadge from "@/components/PriceOrFreeBadge";
@@ -131,17 +130,6 @@ export default async function ItemDetailPage({
   const liked = !!likedRow;
   const signedUp = !!signupRow;
 
-  // Build the share URL from a trusted configured base, not attacker-controllable
-  // forwarded headers. Fall back to request headers only if no base URL is set.
-  let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL;
-  if (!baseUrl) {
-    const h = await headers();
-    const host = h.get("host");
-    const proto = h.get("x-forwarded-proto") ?? "https";
-    baseUrl = `${proto}://${host}`;
-  }
-  const itemUrl = `${baseUrl.replace(/\/$/, "")}/${locale}/items/${item.id}`;
-
   return (
     <div className="grid gap-8 md:grid-cols-2">
       <div>
@@ -189,9 +177,8 @@ export default async function ItemDetailPage({
 
         <div className="sticky bottom-2 space-y-3 md:static">
           <WhatsAppButton
-            phone={viewer ? item.owner.whatsappPhone : null}
-            title={item.title}
-            itemUrl={itemUrl}
+            itemId={item.id}
+            hasPhone={!!item.owner.whatsappPhone}
             isLoggedIn={!!viewer}
             locale={locale}
           />

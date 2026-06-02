@@ -4,22 +4,19 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 export default function WhatsAppButton({
-  phone,
-  title,
-  itemUrl,
+  itemId,
+  hasPhone,
   isLoggedIn,
   locale,
-  message: messageOverride,
   label,
   variant = "solid",
 }: {
-  phone: string | null;
-  title: string;
-  itemUrl: string;
+  itemId: string;
+  // Whether the seller has a number on file. The number itself stays server-side —
+  // the button links to /api/items/[id]/contact which builds the wa.me link and redirects.
+  hasPhone: boolean;
   isLoggedIn: boolean;
   locale: string;
-  // Optional overrides so the same button can drive other intents (e.g. "ask for it free").
-  message?: string;
   label?: string;
   variant?: "solid" | "outline";
 }) {
@@ -42,17 +39,13 @@ export default function WhatsAppButton({
     );
   }
 
-  if (!phone) {
+  if (!hasPhone) {
     return <p className="text-sm text-slate-500">{t("noPhone")}</p>;
   }
 
-  const cleaned = phone.replace(/\D/g, "");
-  const message = messageOverride ?? t("waMessage", { title, url: itemUrl });
-  const href = `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`;
-
   return (
     <a
-      href={href}
+      href={`/api/items/${itemId}/contact?locale=${locale}`}
       target="_blank"
       rel="noopener noreferrer"
       className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-base font-semibold ${styles}`}

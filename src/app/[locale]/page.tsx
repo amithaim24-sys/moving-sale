@@ -160,8 +160,13 @@ export default async function CatalogPage({
                 giveIfUnsold: item.giveIfUnsold,
                 images: item.images,
                 imageCount: item._count.images,
-                // Only hand the seller's number to authenticated viewers.
-                owner: { ...item.owner, whatsappPhone: user ? item.owner.whatsappPhone : null },
+                // The number never reaches the client — contact goes through the
+                // server-side redirect. Cards only need to know a number exists.
+                owner: {
+                  name: item.owner.name,
+                  city: item.owner.city,
+                  hasPhone: !!user && !!item.owner.whatsappPhone,
+                },
               }}
             />
           ))}

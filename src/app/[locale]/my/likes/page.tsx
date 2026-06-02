@@ -66,7 +66,12 @@ export default async function MyLikesPage({
                 giveIfUnsold: item.giveIfUnsold,
                 images: item.images,
                 imageCount: item._count.images,
-                owner: item.owner,
+                // Number stays server-side; contact goes through the redirect endpoint.
+                owner: {
+                  name: item.owner.name,
+                  city: item.owner.city,
+                  hasPhone: !!item.owner.whatsappPhone,
+                },
               }}
             />
           ))}
