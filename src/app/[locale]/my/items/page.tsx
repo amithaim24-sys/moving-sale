@@ -65,9 +65,9 @@ export default async function MyItemsPage({
   const potentialIncome = sellItems
     .filter((i) => i.status !== "SOLD")
     .reduce((sum, i) => sum + (i.priceIls ?? 0), 0);
-  const alreadySold = sellItems
-    .filter((i) => i.status === "SOLD")
-    .reduce((sum, i) => sum + (i.priceIls ?? 0), 0);
+  const soldSellItems = sellItems.filter((i) => i.status === "SOLD");
+  const alreadySold = soldSellItems.reduce((sum, i) => sum + (i.priceIls ?? 0), 0);
+  const soldCount = soldSellItems.length;
 
   const actionLabels = {
     edit: t("form.edit"),
@@ -105,24 +105,28 @@ export default async function MyItemsPage({
         </div>
       </div>
       {sellItems.length > 0 && (
-        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 dark:bg-amber-900/20 dark:ring-amber-800/60">
-          <div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 dark:bg-amber-900/20 dark:ring-amber-800/60">
             <div className="text-sm font-medium text-amber-900 dark:text-amber-100">
               {t("my.potentialIncome")}
             </div>
             <div className="text-xs text-amber-700/80 dark:text-amber-200/70">
               {t("my.potentialIncomeHint")}
             </div>
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-amber-900 dark:text-amber-100">
+            <div className="mt-2 text-2xl font-bold text-amber-900 dark:text-amber-100">
               {t("item.ils", { price: potentialIncome })}
             </div>
-            {alreadySold > 0 && (
-              <div className="text-xs text-emerald-700 dark:text-emerald-400">
-                {t("my.alreadySold")}: {t("item.ils", { price: alreadySold })}
-              </div>
-            )}
+          </div>
+          <div className="rounded-2xl bg-emerald-50 p-4 ring-1 ring-emerald-200 dark:bg-emerald-900/20 dark:ring-emerald-800/60">
+            <div className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
+              {t("my.earned")}
+            </div>
+            <div className="text-xs text-emerald-700/80 dark:text-emerald-200/70">
+              {t("my.earnedHint", { count: soldCount })}
+            </div>
+            <div className="mt-2 text-2xl font-bold text-emerald-900 dark:text-emerald-100">
+              {t("item.ils", { price: alreadySold })}
+            </div>
           </div>
         </div>
       )}
@@ -130,17 +134,41 @@ export default async function MyItemsPage({
         <p className="text-slate-500">{t("item.noItems")}</p>
       ) : (
         <ul className="divide-y rounded-2xl bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 dark:divide-slate-800">
-          {items.map((item) => (
-            <li key={item.id} className="flex items-center gap-4 p-4">
+          {items.map((item) => {
+            const isSold = item.status === "SOLD";
+            return (
+            <li
+              key={item.id}
+              className={`flex items-center gap-4 p-4 ${isSold ? "bg-slate-50 dark:bg-slate-900/40" : ""}`}
+            >
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                 {item.images[0] && (
-                  <Image src={item.images[0].url} alt="" fill className="object-cover" sizes="64px" />
+                  <Image
+                    src={item.images[0].url}
+                    alt=""
+                    fill
+                    className={`object-cover ${isSold ? "opacity-40 grayscale" : ""}`}
+                    sizes="64px"
+                  />
+                )}
+                {isSold && (
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                      {t("item.status.SOLD")}
+                    </span>
+                  </span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="truncate font-medium">{item.title}</div>
+                <div
+                  className={`truncate font-medium ${isSold ? "text-slate-400 line-through dark:text-slate-500" : ""}`}
+                >
+                  {item.title}
+                </div>
                 <div className="text-xs text-slate-500">
-                  {t(`item.status.${item.status as "AVAILABLE"}`)}
+                  <span className={isSold ? "font-semibold text-emerald-600 dark:text-emerald-400" : ""}>
+                    {t(`item.status.${item.status as "AVAILABLE"}`)}
+                  </span>
                   {" · "}👁 {t("item.viewsCount", { count: item.viewCount })}
                 </div>
                 {item.giveIfUnsold && (
@@ -160,11 +188,12 @@ export default async function MyItemsPage({
               <MyItemActions
                 id={item.id}
                 editHref={`/${locale}/my/items/${item.id}/edit`}
-                isSold={item.status === "SOLD"}
+                isSold={isSold}
                 labels={actionLabels}
               />
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
 
@@ -175,17 +204,41 @@ export default async function MyItemsPage({
             {t("collab.sharedBy", { name: group.name ?? group.email })}
           </h2>
           <ul className="divide-y rounded-2xl bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800 dark:divide-slate-800">
-            {group.items.map((item) => (
-              <li key={item.id} className="flex items-center gap-4 p-4">
+            {group.items.map((item) => {
+              const isSold = item.status === "SOLD";
+              return (
+              <li
+                key={item.id}
+                className={`flex items-center gap-4 p-4 ${isSold ? "bg-slate-50 dark:bg-slate-900/40" : ""}`}
+              >
                 <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                   {item.images[0] && (
-                    <Image src={item.images[0].url} alt="" fill className="object-cover" sizes="64px" />
+                    <Image
+                      src={item.images[0].url}
+                      alt=""
+                      fill
+                      className={`object-cover ${isSold ? "opacity-40 grayscale" : ""}`}
+                      sizes="64px"
+                    />
+                  )}
+                  {isSold && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <span className="rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                        {t("item.status.SOLD")}
+                      </span>
+                    </span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="truncate font-medium">{item.title}</div>
+                  <div
+                    className={`truncate font-medium ${isSold ? "text-slate-400 line-through dark:text-slate-500" : ""}`}
+                  >
+                    {item.title}
+                  </div>
                   <div className="text-xs text-slate-500">
-                    {t(`item.status.${item.status as "AVAILABLE"}`)}
+                    <span className={isSold ? "font-semibold text-emerald-600 dark:text-emerald-400" : ""}>
+                      {t(`item.status.${item.status as "AVAILABLE"}`)}
+                    </span>
                     {" · "}👁 {t("item.viewsCount", { count: item.viewCount })}
                   </div>
                 </div>
@@ -197,11 +250,12 @@ export default async function MyItemsPage({
                 <MyItemActions
                   id={item.id}
                   editHref={`/${locale}/my/items/${item.id}/edit`}
-                  isSold={item.status === "SOLD"}
+                  isSold={isSold}
                   labels={actionLabels}
                 />
               </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       ))}
