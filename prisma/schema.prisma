@@ -189,6 +189,22 @@ model ItemClick {
   @@index([createdAt])
 }
 
+// A visitor who clicked "I want a website like this" on the public catalog. These
+// are sales leads the admin follows up with manually — no account is required, so
+// the requester may be anonymous (userId is set only if they happened to be signed in).
+model WebsiteRequest {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String
+  message   String?
+  status    String   @default("NEW") // "NEW" | "HANDLED"
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
+
 // One row per site visit (page entry), including anonymous visitors keyed by a
 // first-party `vid` cookie. Powers "how many users enter" (total + unique).
 model Visit {

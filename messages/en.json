@@ -113,6 +113,8 @@
     "potentialIncome": "Potential income from sales",
     "potentialIncomeHint": "Total price of your items still available for sale.",
     "alreadySold": "Already sold",
+    "earned": "Earned from sales",
+    "earnedHint": "{count, plural, =0 {No items sold yet} one {# item sold} other {# items sold}}",
     "actionFailed": "Action failed"
   },
   "collab": {
@@ -154,6 +156,7 @@
     "items": "All items",
     "viewsTab": "Views",
     "clicksTab": "Clicks",
+    "requestsTab": "Site requests",
     "role": "Role",
     "promote": "Make admin",
     "demote": "Remove admin",
@@ -224,7 +227,38 @@
       "colViews": "Views",
       "colLikes": "Likes",
       "colCtr": "CTR"
+    },
+    "requestsPage": {
+      "title": "Website requests",
+      "subtitle": "People who asked for a copy of this website to sell their own items. Follow up by email.",
+      "none": "No requests yet.",
+      "colName": "Name",
+      "colEmail": "Email",
+      "colMessage": "Message",
+      "colWhen": "Requested",
+      "colStatus": "Status",
+      "statusNew": "New",
+      "statusHandled": "Handled",
+      "markHandled": "Mark handled",
+      "markNew": "Mark new",
+      "delete": "Delete",
+      "confirmDelete": "Delete this request permanently?"
     }
+  },
+  "duplicate": {
+    "heading": "Want a website like this for yourself?",
+    "subheading": "Selling your own stuff before a move? Get your own copy of this site to list your items.",
+    "cta": "Yes — I want this website",
+    "name": "Your name",
+    "namePlaceholder": "e.g. Dana Levi",
+    "email": "Email",
+    "emailPlaceholder": "name@example.com",
+    "message": "Anything you'd like to tell us? (optional)",
+    "messagePlaceholder": "What would you use it for?",
+    "submit": "Send my request",
+    "success": "Thanks! We'll be in touch.",
+    "thanks": "Thanks! We've got your request and will reach out by email.",
+    "error": "Couldn't send. Please try again."
   },
   "banned": {
     "title": "Your account has been suspended",

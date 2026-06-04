@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import ItemCard from "@/components/ItemCard";
 import CatalogSearch from "@/components/CatalogSearch";
 import EmptyState from "@/components/EmptyState";
+import DuplicateSiteCTA from "@/components/DuplicateSiteCTA";
 import { getOptionalUser } from "@/lib/guards";
 import type { Locale } from "@/i18n/config";
 
@@ -174,6 +175,8 @@ export default async function CatalogPage({
           ))}
         </div>
       )}
+
+      <DuplicateSiteCTA defaultName={user?.name} defaultEmail={user?.email} />
     </div>
   );
 }
