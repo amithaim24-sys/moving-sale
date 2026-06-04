@@ -27,6 +27,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
   const t = await getTranslations("a11y");
+  const tApp = await getTranslations("app");
   const user = await getOptionalUser();
   // Per-request CSP nonce minted in middleware; applied to our one inline script so it
   // runs under the strict (no 'unsafe-inline') script-src policy.
@@ -54,7 +55,10 @@ export default async function LocaleLayout({
           <NextIntlClientProvider messages={messages} locale={locale}>
             <Toaster>
               <Header locale={locale as Locale} />
-              <main id="main-content" className="mx-auto max-w-6xl px-3 py-6 pb-24 sm:px-4 md:pb-6">{children}</main>
+              <main id="main-content" className="mx-auto max-w-6xl px-3 py-6 sm:px-4">{children}</main>
+              <footer className="mx-auto max-w-6xl px-3 pb-28 pt-2 text-center text-xs text-slate-400 sm:px-4 dark:text-slate-500 md:pb-8">
+                {tApp("builtBy")}
+              </footer>
               <BottomNav locale={locale} isLoggedIn={!!user} />
             </Toaster>
           </NextIntlClientProvider>

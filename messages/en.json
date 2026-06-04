@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "We move, you earn",
-    "tagline": "Items for sale or to give away before the move"
+    "tagline": "Items for sale or to give away before the move",
+    "builtBy": "This marketplace was built by Or Cafri"
   },
   "nav": {
     "browse": "Browse",
