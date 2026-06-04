@@ -58,6 +58,13 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     return NextResponse.redirect(new URL(`/${locale}/items/${item.id}`, url.origin));
   }
 
+  // Record a high-intent contact click. Both writes are fire-and-forget: errors are
+  // swallowed so analytics failures never block or degrade the buyer hand-off.
+  await Promise.all([
+    prisma.item.update({ where: { id: item.id }, data: { clickCount: { increment: 1 } } }).catch(() => {}),
+    prisma.itemClick.create({ data: { itemId: item.id, userId: session.user.id, kind: "CONTACT" } }).catch(() => {}),
+  ]);
+
   const itemUrl = `${url.origin}/${locale}/items/${item.id}`;
   const t = await getTranslations({ locale });
   const message = t("item.waMessage", { title: item.title, url: itemUrl });

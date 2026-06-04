@@ -120,12 +120,14 @@ model Item {
   giveIfUnsold Boolean @default(false)
   status      String   @default("AVAILABLE")
   viewCount   Int      @default(0)
+  clickCount  Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   images      ItemImage[]
   likes       ItemLike[]
   giveIfUnsoldSignups GiveIfUnsoldSignup[]
   views       ItemView[]
+  clicks      ItemClick[]
 
   @@index([status, createdAt])
   @@index([ownerId])
@@ -170,4 +172,32 @@ model ItemImage {
   sortOrder          Int    @default(0)
 
   @@index([itemId, sortOrder])
+}
+
+// High-intent click on an item (WhatsApp/contact hand-off). Powers "most clicked item".
+model ItemClick {
+  id        String   @id @default(cuid())
+  itemId    String
+  userId    String?
+  kind      String   @default("CONTACT") // "CONTACT"
+  createdAt DateTime @default(now())
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, createdAt])
+  @@index([kind, createdAt])
+  @@index([createdAt])
+}
+
+// One row per site visit (page entry), including anonymous visitors keyed by a
+// first-party `vid` cookie. Powers "how many users enter" (total + unique).
+model Visit {
+  id        String   @id @default(cuid())
+  visitorId String
+  userId    String?
+  path      String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([visitorId, createdAt])
 }

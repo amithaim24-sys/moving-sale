@@ -60,6 +60,19 @@ export default function middleware(req: NextRequest) {
     "max-age=63072000; includeSubDomains; preload",
   );
 
+  // Assign a persistent first-party visitor-id cookie so anonymous traffic can
+  // be tracked without a login. The cookie is httpOnly (JS-inaccessible) and
+  // lives for a year. We read it in /api/track/visit to key each Visit row.
+  if (!req.cookies.get("vid")) {
+    const vid = crypto.randomUUID();
+    res.cookies.set("vid", vid, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 365,
+      path: "/",
+    });
+  }
+
   return res;
 }
 

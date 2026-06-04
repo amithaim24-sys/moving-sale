@@ -153,6 +153,7 @@
     "users": "משתמשים",
     "items": "כל הפריטים",
     "viewsTab": "צפיות",
+    "clicksTab": "קליקים",
     "role": "תפקיד",
     "promote": "הפוך למנהל",
     "demote": "הסר ניהול",
@@ -187,19 +188,26 @@
       "potentialRevenue": "הכנסה אפשרית",
       "potentialRevenueHint": "סך המחירים של פריטים שעדיין זמינים למכירה.",
       "realizedRevenue": "שווי שנמכר",
-      "realizedRevenueHint": "סך המחירים של פריטים שסומנו כנמכרו."
+      "realizedRevenueHint": "סך המחירים של פריטים שסומנו כנמכרו.",
+      "uniqueVisitors": "מבקרים ייחודיים",
+      "totalVisits": "סך כניסות",
+      "contactClicks": "קליקים ליצירת קשר"
     },
     "charts": {
       "viewsTrend": "צפיות · 30 הימים האחרונים",
       "listingsTrend": "פריטים חדשים · 30 הימים האחרונים",
       "itemsByStatus": "פריטים לפי סטטוס",
-      "itemsByType": "פריטים לפי סוג"
+      "itemsByType": "פריטים לפי סוג",
+      "visitsTrend": "כניסות (30 ימים)",
+      "clicksTrend": "קליקים ליצירת קשר (30 ימים)"
     },
     "activity": {
       "recentViews": "צפיות אחרונות",
       "mostViewed": "הפריטים הנצפים ביותר",
+      "mostClicked": "הפריטים עם הכי הרבה קליקים",
       "viewAll": "הצג הכל",
-      "none": "עדיין לא נרשמו צפיות."
+      "none": "עדיין לא נרשמו צפיות.",
+      "noneClicks": "עדיין לא נרשמו קליקים."
     },
     "viewsPage": {
       "title": "צפיות בפריטים",
@@ -207,6 +215,15 @@
       "colUser": "משתמש",
       "colItem": "פריט",
       "colWhen": "נצפה"
+    },
+    "clicksPage": {
+      "title": "קליקים על פריטים",
+      "subtitle": "פריטים מדורגים לפי קליקים ליצירת קשר.",
+      "colItem": "פריט",
+      "colClicks": "קליקים",
+      "colViews": "צפיות",
+      "colLikes": "לייקים",
+      "colCtr": "יחס המרה"
     }
   },
   "banned": {

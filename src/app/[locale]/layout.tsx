@@ -8,6 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import SessionProvider from "@/components/SessionProvider";
 import Toaster from "@/components/Toaster";
 import { getOptionalUser } from "@/lib/guards";
+import VisitTracker from "@/components/VisitTracker";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -48,6 +49,7 @@ export default async function LocaleLayout({
         >
           {t("skipToContent")}
         </a>
+        <VisitTracker />
         <SessionProvider>
           <NextIntlClientProvider messages={messages} locale={locale}>
             <Toaster>

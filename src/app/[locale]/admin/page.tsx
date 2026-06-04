@@ -38,6 +38,12 @@ export default async function AdminDashboardPage({
     itemsLog,
     recentViews,
     topItems,
+    totalVisits,
+    uniqueVisitorRows,
+    totalContactClicks,
+    visitsLog,
+    clicksLog,
+    topClickedItems,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: since30 } } }),
@@ -72,6 +78,18 @@ export default async function AdminDashboardPage({
       take: 5,
       select: { id: true, title: true, viewCount: true },
     }),
+    // Visit + click analytics
+    prisma.visit.count(),
+    prisma.visit.groupBy({ by: ["visitorId"] }),
+    prisma.itemClick.count(),
+    prisma.visit.findMany({ where: { createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
+    prisma.itemClick.findMany({ where: { createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
+    prisma.item.findMany({
+      where: { clickCount: { gt: 0 } },
+      orderBy: { clickCount: "desc" },
+      take: 5,
+      select: { id: true, title: true, clickCount: true, viewCount: true },
+    }),
   ]);
 
   const byStatus: Record<string, number> = {};
@@ -81,6 +99,10 @@ export default async function AdminDashboardPage({
 
   const viewsTrend = bucketByDay(viewsLog.map((v) => v.createdAt), 30, now, locale);
   const itemsTrend = bucketByDay(itemsLog.map((v) => v.createdAt), 30, now, locale);
+  const visitsTrend = bucketByDay(visitsLog.map((v) => v.createdAt), 30, now, locale);
+  const clicksTrend = bucketByDay(clicksLog.map((v) => v.createdAt), 30, now, locale);
+
+  const uniqueVisitorCount = uniqueVisitorRows.length;
 
   const num = (n: number) => n.toLocaleString(locale);
   const ils = (n: number) => `₪${n.toLocaleString(locale)}`;
@@ -98,6 +120,9 @@ export default async function AdminDashboardPage({
     { label: t("metrics.reducedItems"), value: num(reducedCount) },
     { label: t("metrics.potentialRevenue"), value: ils(potentialAgg._sum.priceIls ?? 0) },
     { label: t("metrics.realizedRevenue"), value: ils(soldAgg._sum.priceIls ?? 0) },
+    { label: t("metrics.totalVisits"), value: num(totalVisits) },
+    { label: t("metrics.uniqueVisitors"), value: num(uniqueVisitorCount) },
+    { label: t("metrics.contactClicks"), value: num(totalContactClicks) },
   ];
 
   const statusBars = [
@@ -136,6 +161,16 @@ export default async function AdminDashboardPage({
         </Panel>
         <Panel title={t("charts.listingsTrend")}>
           <TrendBars data={itemsTrend} accentClass="bg-emerald-500" ariaLabel={t("charts.listingsTrend")} />
+        </Panel>
+      </div>
+
+      {/* Visits + clicks trend charts */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel title={t("charts.visitsTrend")}>
+          <TrendBars data={visitsTrend} accentClass="bg-violet-500" ariaLabel={t("charts.visitsTrend")} />
+        </Panel>
+        <Panel title={t("charts.clicksTrend")}>
+          <TrendBars data={clicksTrend} accentClass="bg-rose-500" ariaLabel={t("charts.clicksTrend")} />
         </Panel>
       </div>
 
@@ -207,6 +242,39 @@ export default async function AdminDashboardPage({
           )}
         </Panel>
       </div>
+
+      {/* Most clicked items */}
+      <Panel
+        title={t("activity.mostClicked")}
+        action={
+          <Link href={`/${locale}/admin/clicks`} className="text-xs font-medium text-brand hover:underline">
+            {t("activity.viewAll")}
+          </Link>
+        }
+      >
+        {topClickedItems.length === 0 ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400">{t("activity.noneClicks")}</p>
+        ) : (
+          <ol className="space-y-1 text-sm">
+            {topClickedItems.map((item, i) => {
+              const ctr = item.viewCount > 0 ? `${((item.clickCount / item.viewCount) * 100).toFixed(1)}%` : "—";
+              return (
+                <li key={item.id} className="flex items-center gap-3 py-1">
+                  <span className="w-5 shrink-0 text-end font-semibold tabular-nums text-slate-400">{i + 1}</span>
+                  <Link
+                    href={`/${locale}/items/${item.id}`}
+                    className="min-w-0 flex-1 truncate text-slate-700 hover:underline dark:text-slate-200"
+                  >
+                    {item.title}
+                  </Link>
+                  <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400">🖱 {num(item.clickCount)}</span>
+                  <span className="shrink-0 text-xs font-medium text-slate-400">CTR {ctr}</span>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </Panel>
     </div>
   );
 }
