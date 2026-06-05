@@ -2,7 +2,9 @@
   "app": {
     "title": "We move, you earn",
     "tagline": "Items for sale or to give away before the move",
-    "builtBy": "This marketplace was built by <link>Or Cafri</link>"
+    "builtBy": "This marketplace was built by <link>Or Cafri</link>",
+    "wantWebsite": "Want a website like this?",
+    "wantWebsiteShort": "Want a site like this?"
   },
   "nav": {
     "browse": "Browse",
@@ -251,7 +253,12 @@
     },
     "logsPage": {
       "title": "Event logs",
-      "subtitle": "Diagnostic event stream for debugging real user issues (e.g. WhatsApp contact problems).",
+      "subtitle": "Site-wide diagnostic event stream — server errors, browser errors, and key actions across the whole site.",
+      "overviewTitle": "Site health (last 7 days)",
+      "totalEvents": "Total events",
+      "allErrors": "All errors",
+      "serverErrors": "Server errors",
+      "clientErrors": "Browser errors",
       "clearOld": "Clear logs older than 30 days",
       "confirmClear": "Delete all log entries older than 30 days?",
       "cleared": "Deleted {count}",

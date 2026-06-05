@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { logEvent, requestContext } from "@/lib/eventLog";
 
 // Register the current user's interest in receiving a "give away if unsold" item
 // for free. This replaces the WhatsApp contact for that fallback — the owner reviews
@@ -37,6 +38,16 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   } catch {
     // Unique constraint => already signed up. Idempotent success.
   }
+  const rc = requestContext(req);
+  void logEvent({
+    event: "give_signup",
+    outcome: "ok",
+    userId: session.user.id,
+    itemId: item.id,
+    path: rc.path,
+    userAgent: rc.userAgent,
+    ip: rc.ip,
+  });
   return NextResponse.json({ ok: true, signedUp: true });
 }
 

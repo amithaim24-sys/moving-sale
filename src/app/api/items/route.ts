@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseItemPayload } from "@/lib/validate";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { logEvent, requestContext } from "@/lib/eventLog";
 
 export async function POST(req: Request) {
   const blocked = csrfBlock(req);
@@ -54,8 +55,30 @@ export async function POST(req: Request) {
           : undefined,
       },
     });
+    const ctx = requestContext(req);
+    void logEvent({
+      event: "item_create",
+      outcome: status === "DRAFT" ? "draft" : "published",
+      userId: session.user.id,
+      itemId: item.id,
+      path: ctx.path,
+      userAgent: ctx.userAgent,
+      ip: ctx.ip,
+      meta: { type: payload.type, status },
+    });
     return NextResponse.json({ id: item.id });
-  } catch {
+  } catch (err) {
+    const ctx = requestContext(req);
+    void logEvent({
+      event: "item_create",
+      outcome: "error",
+      level: "ERROR",
+      userId: session.user.id,
+      path: ctx.path,
+      userAgent: ctx.userAgent,
+      ip: ctx.ip,
+      message: err instanceof Error ? err.message : String(err),
+    });
     return new NextResponse("Could not create item", { status: 500 });
   }
 }

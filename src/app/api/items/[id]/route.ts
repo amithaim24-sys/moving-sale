@@ -5,6 +5,7 @@ import { parseItemPayload } from "@/lib/validate";
 import { destroyImage } from "@/lib/cloudinary";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
 import { canEditOwner } from "@/lib/collab";
+import { logEvent, requestContext } from "@/lib/eventLog";
 
 // Load an item the caller is allowed to act on. `isFullEditor` is true for the owner
 // and for collaborators the owner has invited — they may edit content and images.
@@ -129,13 +130,36 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       }
     }
     });
-  } catch {
+  } catch (err) {
+    const ec = requestContext(req);
+    void logEvent({
+      event: "item_update",
+      outcome: "error",
+      level: "ERROR",
+      userId: session.user.id,
+      itemId: id,
+      path: ec.path,
+      userAgent: ec.userAgent,
+      ip: ec.ip,
+      message: err instanceof Error ? err.message : String(err),
+    });
     return new NextResponse("Could not update item", { status: 500 });
   }
 
   // Best-effort Cloudinary cleanup after the DB commit (destroyImage swallows its own errors).
   await Promise.all(publicIdsToDestroy.map((publicId) => destroyImage(publicId)));
 
+  const ec = requestContext(req);
+  void logEvent({
+    event: "item_update",
+    outcome: "ok",
+    userId: session.user.id,
+    itemId: id,
+    path: ec.path,
+    userAgent: ec.userAgent,
+    ip: ec.ip,
+    meta: { status: payload.status ?? null, fullEditor: loaded.isFullEditor },
+  });
   return NextResponse.json({ ok: true });
 }
 
@@ -154,11 +178,33 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
 
   try {
     await prisma.item.delete({ where: { id } });
-  } catch {
+  } catch (err) {
+    const ec = requestContext(req);
+    void logEvent({
+      event: "item_delete",
+      outcome: "error",
+      level: "ERROR",
+      userId: session.user.id,
+      itemId: id,
+      path: ec.path,
+      userAgent: ec.userAgent,
+      ip: ec.ip,
+      message: err instanceof Error ? err.message : String(err),
+    });
     return new NextResponse("Could not delete item", { status: 500 });
   }
   // Delete the DB row first; only then drop the images. If this is interrupted the
   // worst case is an orphaned Cloudinary asset, not a broken listing with dead images.
   await Promise.all(found.images.map((img) => destroyImage(img.cloudinaryPublicId)));
+  const ec = requestContext(req);
+  void logEvent({
+    event: "item_delete",
+    outcome: "ok",
+    userId: session.user.id,
+    itemId: id,
+    path: ec.path,
+    userAgent: ec.userAgent,
+    ip: ec.ip,
+  });
   return NextResponse.json({ ok: true });
 }

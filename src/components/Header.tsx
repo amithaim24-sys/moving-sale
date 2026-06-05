@@ -60,6 +60,17 @@ export default async function Header({ locale }: { locale: Locale }) {
         {/* Mobile spacer pushes controls to the end */}
         <div className="flex-1 md:hidden" />
 
+        {/* "Want a website like this?" CTA → builder's LinkedIn */}
+        <a
+          href="https://www.linkedin.com/in/or-caf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="me-1 inline-flex items-center whitespace-nowrap rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand transition hover:bg-brand/20"
+        >
+          <span className="hidden sm:inline">{t("app.wantWebsite")}</span>
+          <span className="sm:hidden">{t("app.wantWebsiteShort")}</span>
+        </a>
+
         {/* Always-visible controls */}
         <DarkModeToggle />
         <LanguageToggle currentLocale={locale} />

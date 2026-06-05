@@ -56,7 +56,17 @@ export default async function AdminLogsPage({
     ...(eventFilter ? { event: eventFilter } : {}),
   };
 
-  const [logs, total, distinctEvents, waOutcomeRows, waClicks7] = await Promise.all([
+  const [
+    logs,
+    total,
+    distinctEvents,
+    waOutcomeRows,
+    waClicks7,
+    totalEvents7,
+    serverErrors7,
+    clientErrors7,
+    allErrors7,
+  ] = await Promise.all([
     prisma.eventLog.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -76,6 +86,11 @@ export default async function AdminLogsPage({
     prisma.eventLog.count({
       where: { event: "client_whatsapp_click", createdAt: { gte: since7 } },
     }),
+    // Site-wide health (last 7 days): total events, plus errors from every source.
+    prisma.eventLog.count({ where: { createdAt: { gte: since7 } } }),
+    prisma.eventLog.count({ where: { event: "server_error", createdAt: { gte: since7 } } }),
+    prisma.eventLog.count({ where: { event: "client_error", createdAt: { gte: since7 } } }),
+    prisma.eventLog.count({ where: { level: "ERROR", createdAt: { gte: since7 } } }),
   ]);
 
   const waCounts: Record<string, number> = {};
@@ -111,6 +126,36 @@ export default async function AdminLogsPage({
           doneText={t("logsPage.cleared")}
         />
       </div>
+
+      {/* Site-wide health overview (last 7 days). Covers every logged source:
+          server errors, client/browser errors, and the full event volume. */}
+      <section className="rounded-2xl bg-white p-5 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+        <h2 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">
+          {t("logsPage.overviewTitle")}
+        </h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <FunnelStat label={t("logsPage.totalEvents")} value={num(totalEvents7)} />
+          <FunnelStat
+            label={t("logsPage.allErrors")}
+            value={num(allErrors7)}
+            tone={allErrors7 > 0 ? "bad" : "good"}
+          />
+          <Link href={buildHref({ event: "server_error" })} className="block">
+            <FunnelStat
+              label={t("logsPage.serverErrors")}
+              value={num(serverErrors7)}
+              tone={serverErrors7 > 0 ? "bad" : undefined}
+            />
+          </Link>
+          <Link href={buildHref({ event: "client_error" })} className="block">
+            <FunnelStat
+              label={t("logsPage.clientErrors")}
+              value={num(clientErrors7)}
+              tone={clientErrors7 > 0 ? "bad" : undefined}
+            />
+          </Link>
+        </div>
+      </section>
 
       {/* WhatsApp contact funnel — the headline answer for "is the button working?" */}
       <section className="rounded-2xl bg-white p-5 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">

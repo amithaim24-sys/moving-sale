@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { logEvent, requestContext } from "@/lib/eventLog";
 
 // Public endpoint: a visitor asks to get a copy of this website for themselves.
 // No account is required (most visitors are anonymous), so we identify rate-limit
@@ -39,5 +40,15 @@ export async function POST(req: Request) {
     data: { name, email, message, userId },
   });
 
+  const ctx = requestContext(req);
+  void logEvent({
+    event: "website_request",
+    outcome: "ok",
+    userId,
+    path: ctx.path,
+    userAgent: ctx.userAgent,
+    ip: ctx.ip,
+    meta: { hasName: !!name, hasMessage: !!message },
+  });
   return NextResponse.json({ ok: true });
 }

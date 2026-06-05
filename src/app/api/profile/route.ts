@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { logEvent, requestContext } from "@/lib/eventLog";
 
 export async function PATCH(req: Request) {
   const blocked = csrfBlock(req);
@@ -41,6 +42,21 @@ export async function PATCH(req: Request) {
       ...(name !== undefined ? { name } : {}),
       ...(city !== undefined ? { city } : {}),
       ...(phone !== undefined ? { whatsappPhone: phone } : {}),
+    },
+  });
+  const ctx = requestContext(req);
+  void logEvent({
+    event: "profile_update",
+    outcome: "ok",
+    userId: session.user.id,
+    path: ctx.path,
+    userAgent: ctx.userAgent,
+    ip: ctx.ip,
+    // Record WHICH fields changed, never the values (phone is sensitive).
+    meta: {
+      changedName: name !== undefined,
+      changedCity: city !== undefined,
+      changedPhone: phone !== undefined,
     },
   });
   return NextResponse.json({ ok: true });
