@@ -7,6 +7,7 @@ type Request = {
   id: string;
   name: string | null;
   email: string;
+  phone: string | null;
   message: string | null;
   status: "NEW" | "HANDLED";
   when: string;
@@ -74,6 +75,20 @@ export default function AdminRequestRow({
         <a href={`mailto:${request.email}`} className="text-brand hover:underline">
           {request.email}
         </a>
+      </td>
+      <td className="whitespace-nowrap px-3 py-2">
+        {request.phone ? (
+          <a
+            href={`https://wa.me/${request.phone.replace(/\D/g, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand hover:underline"
+          >
+            {request.phone}
+          </a>
+        ) : (
+          "—"
+        )}
       </td>
       <td className="max-w-xs px-3 py-2 text-slate-600 dark:text-slate-400">
         {request.message ? (

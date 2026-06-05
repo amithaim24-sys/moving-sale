@@ -215,6 +215,7 @@ model WebsiteRequest {
   id        String   @id @default(cuid())
   name      String?
   email     String
+  phone     String?
   message   String?
   status    String   @default("NEW") // "NEW" | "HANDLED"
   userId    String?

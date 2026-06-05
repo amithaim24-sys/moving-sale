@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const limited = rateLimitBlock(`website-request:${ip}`, 5, 60_000);
   if (limited) return limited;
 
-  let body: { name?: unknown; email?: unknown; message?: unknown };
+  let body: { name?: unknown; email?: unknown; phone?: unknown; message?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     return new NextResponse("A valid email is required", { status: 400 });
   }
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) || null : null;
+  const phone = typeof body.phone === "string" ? body.phone.trim().slice(0, 40) || null : null;
   const message = typeof body.message === "string" ? body.message.trim().slice(0, 1000) || null : null;
 
   // If the requester happens to be signed in, tag the lead with their user id.
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
   const userId = session?.user?.id ?? null;
 
   await prisma.websiteRequest.create({
-    data: { name, email, message, userId },
+    data: { name, email, phone, message, userId },
   });
 
   const ctx = requestContext(req);
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
     path: ctx.path,
     userAgent: ctx.userAgent,
     ip: ctx.ip,
-    meta: { hasName: !!name, hasMessage: !!message },
+    meta: { hasName: !!name, hasPhone: !!phone, hasMessage: !!message },
   });
   return NextResponse.json({ ok: true });
 }

@@ -18,7 +18,7 @@ export default async function AdminRequestsPage({
   const requests = await prisma.websiteRequest.findMany({
     // NEW first, then most recent.
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    select: { id: true, name: true, email: true, message: true, status: true, createdAt: true },
+    select: { id: true, name: true, email: true, phone: true, message: true, status: true, createdAt: true },
     take: 300,
   });
 
@@ -43,6 +43,7 @@ export default async function AdminRequestsPage({
               <tr>
                 <th className="px-3 py-2 text-start">{t("requestsPage.colName")}</th>
                 <th className="px-3 py-2 text-start">{t("requestsPage.colEmail")}</th>
+                <th className="px-3 py-2 text-start">{t("requestsPage.colWhatsApp")}</th>
                 <th className="px-3 py-2 text-start">{t("requestsPage.colMessage")}</th>
                 <th className="px-3 py-2 text-start">{t("requestsPage.colWhen")}</th>
                 <th className="px-3 py-2 text-start">{t("requestsPage.colStatus")}</th>
@@ -57,6 +58,7 @@ export default async function AdminRequestsPage({
                     id: r.id,
                     name: r.name,
                     email: r.email,
+                    phone: r.phone,
                     message: r.message,
                     status: r.status as "NEW" | "HANDLED",
                     when: dateFmt.format(r.createdAt),
