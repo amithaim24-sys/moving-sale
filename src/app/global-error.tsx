@@ -1,13 +1,28 @@
 "use client";
 
+import { useEffect } from "react";
+import { logClientEvent } from "@/lib/clientLog";
+
 // Last-resort boundary: replaces the root layout, so it ships its own <html>
 // and inline styles (no Tailwind / i18n provider available here).
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // A root crash is the most severe case — make sure it's recorded.
+    logClientEvent({
+      event: "client_error",
+      level: "ERROR",
+      outcome: "global_error_boundary",
+      message: error.message,
+      meta: { digest: error.digest, stack: error.stack?.slice(0, 2000) },
+    });
+  }, [error]);
+
   return (
     <html lang="en">
       <body

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { logClientEvent } from "@/lib/clientLog";
 
 export default function LocaleError({
   error,
@@ -14,6 +15,14 @@ export default function LocaleError({
 
   useEffect(() => {
     console.error(error);
+    // Report the boundary hit so a user landing on the error screen leaves a trace.
+    logClientEvent({
+      event: "client_error",
+      level: "ERROR",
+      outcome: "react_error_boundary",
+      message: error.message,
+      meta: { digest: error.digest, stack: error.stack?.slice(0, 2000) },
+    });
   }, [error]);
 
   return (

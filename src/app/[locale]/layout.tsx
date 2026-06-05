@@ -9,6 +9,7 @@ import SessionProvider from "@/components/SessionProvider";
 import Toaster from "@/components/Toaster";
 import { getOptionalUser } from "@/lib/guards";
 import VisitTracker from "@/components/VisitTracker";
+import ClientErrorLogger from "@/components/ClientErrorLogger";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -51,13 +52,25 @@ export default async function LocaleLayout({
           {t("skipToContent")}
         </a>
         <VisitTracker />
+        <ClientErrorLogger />
         <SessionProvider>
           <NextIntlClientProvider messages={messages} locale={locale}>
             <Toaster>
               <Header locale={locale as Locale} />
               <main id="main-content" className="mx-auto max-w-6xl px-3 py-6 sm:px-4">{children}</main>
               <footer className="mx-auto max-w-6xl px-3 pb-28 pt-2 text-center text-xs text-slate-400 sm:px-4 dark:text-slate-500 md:pb-8">
-                {tApp("builtBy")}
+                {tApp.rich("builtBy", {
+                  link: (chunks) => (
+                    <a
+                      href="https://www.linkedin.com/in/or-caf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-brand underline-offset-2 hover:underline"
+                    >
+                      {chunks}
+                    </a>
+                  ),
+                })}
               </footer>
               <BottomNav locale={locale} isLoggedIn={!!user} />
             </Toaster>
