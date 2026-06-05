@@ -4,9 +4,9 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import WebsiteRequestForm from "@/components/WebsiteRequestForm";
 
-// Header "Want a website like this?" pill. Opens a modal with the lead form so a
-// visitor can request their own copy of the site from any page; submissions land
-// in the admin "Website requests" panel.
+// Header "Want a website like this?" pill. Opens a slide-in sidebar with the lead
+// form so a visitor can request their own copy of the site from any page;
+// submissions land in the admin "Website requests" panel.
 export default function WebsiteRequestButton({
   defaultName,
   defaultEmail,
@@ -46,40 +46,46 @@ export default function WebsiteRequestButton({
         <span className="sm:hidden">{tApp("wantWebsiteShort")}</span>
       </button>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-[80] flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={titleId}
-        >
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setOpen(false)}
-            aria-hidden="true"
-          />
-          <div className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
-            <button
-              ref={closeRef}
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label={a11y("closeDialog")}
-              className="absolute end-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-            >
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
-                <path d="M6 6l12 12M6 18L18 6" />
-              </svg>
-            </button>
-            <h2 id={titleId} className="pe-8 text-lg font-bold sm:text-xl">
+      {/* Backdrop */}
+      <div
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+        className={`fixed inset-0 z-[80] bg-black/40 transition-opacity ${
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      />
+      {/* Slide-in sidebar */}
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className={`fixed end-0 top-0 z-[90] flex h-full w-96 max-w-[90vw] flex-col bg-white shadow-xl transition-transform dark:bg-slate-900 ${
+          open ? "translate-x-0" : "translate-x-full rtl:-translate-x-full"
+        }`}
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-4 dark:border-slate-800">
+          <div>
+            <h2 id={titleId} className="text-lg font-bold">
               {t("heading")}
             </h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{t("subheading")}</p>
-            <div className="mt-4">
-              <WebsiteRequestForm defaultName={defaultName} defaultEmail={defaultEmail} />
-            </div>
           </div>
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label={a11y("closeDialog")}
+            className="-me-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M6 18L18 6" />
+            </svg>
+          </button>
         </div>
-      )}
+        <div className="flex-1 overflow-y-auto p-4">
+          {open && <WebsiteRequestForm defaultName={defaultName} defaultEmail={defaultEmail} />}
+        </div>
+      </aside>
     </>
   );
 }
