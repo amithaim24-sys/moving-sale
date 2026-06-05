@@ -19,7 +19,7 @@ export default function TrendBars({
         {data.map((d, i) => (
           <div
             key={i}
-            className="flex-1"
+            className="flex h-full flex-1 items-end"
             title={`${d.label}: ${d.value}`}
           >
             <div
