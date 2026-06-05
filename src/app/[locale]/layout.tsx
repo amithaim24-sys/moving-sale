@@ -10,6 +10,7 @@ import Toaster from "@/components/Toaster";
 import { getOptionalUser } from "@/lib/guards";
 import VisitTracker from "@/components/VisitTracker";
 import ClientErrorLogger from "@/components/ClientErrorLogger";
+import { Analytics } from "@vercel/analytics/next";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -76,6 +77,7 @@ export default async function LocaleLayout({
             </Toaster>
           </NextIntlClientProvider>
         </SessionProvider>
+        <Analytics />
       </body>
     </html>
   );
