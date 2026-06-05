@@ -68,6 +68,24 @@ model GiveIfUnsoldSignup {
   @@index([itemId, createdAt])
 }
 
+// A future buyer the OWNER manually adds to one of their items — someone who told
+// the seller off-site ("let me know when it's free") that they want it once it's
+// available. These people have no account; the owner stores their name + phone and
+// can later WhatsApp them a "it's ready" message. `notifiedAt` records when the
+// owner sent that message, so the list shows who has already been pinged.
+model Waitlister {
+  id         String    @id @default(cuid())
+  itemId     String
+  name       String
+  phone      String
+  notifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, createdAt])
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -126,6 +144,7 @@ model Item {
   images      ItemImage[]
   likes       ItemLike[]
   giveIfUnsoldSignups GiveIfUnsoldSignup[]
+  waitlisters Waitlister[]
   views       ItemView[]
   clicks      ItemClick[]
 
@@ -216,4 +235,33 @@ model Visit {
 
   @@index([createdAt])
   @@index([visitorId, createdAt])
+}
+
+// Append-only structured application event log for debugging real user issues
+// (e.g. "WhatsApp button did nothing"). Deliberately has NO foreign keys: a log
+// row must survive even if the item/user it references is later deleted, and a
+// logging failure must never cascade into the request it's describing.
+//
+// `event`   — what happened, e.g. "whatsapp_contact", "client_error".
+// `outcome` — the branch taken, e.g. "redirect_wa" | "no_phone" | "not_logged_in"
+//             | "rate_limited" | "banned" | "not_visible" | "popup_blocked" | "error".
+// `level`   — "INFO" (normal) | "WARN" (handled-but-notable) | "ERROR" (failure).
+// `meta`    — free-form JSON (referer, error stack, request URL, etc.).
+model EventLog {
+  id        String   @id @default(cuid())
+  level     String   @default("INFO")
+  event     String
+  outcome   String?
+  message   String?
+  itemId    String?
+  userId    String?
+  path      String?
+  userAgent String?
+  ip        String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([event, createdAt])
+  @@index([level, createdAt])
 }

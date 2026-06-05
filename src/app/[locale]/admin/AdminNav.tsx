@@ -15,6 +15,7 @@ export default function AdminNav({ locale }: { locale: string }) {
     { href: `/${locale}/admin/items`, label: t("items") },
     { href: `/${locale}/admin/views`, label: t("viewsTab") },
     { href: `/${locale}/admin/clicks`, label: t("clicksTab") },
+    { href: `/${locale}/admin/logs`, label: t("logsTab") },
     { href: `/${locale}/admin/users`, label: t("users") },
     { href: `/${locale}/admin/requests`, label: t("requestsTab") },
   ];

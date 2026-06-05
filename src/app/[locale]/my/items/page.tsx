@@ -20,6 +20,7 @@ const itemSelect = {
   viewCount: true,
   giveIfUnsold: true,
   images: { take: 1, orderBy: { sortOrder: "asc" }, select: { url: true } },
+  _count: { select: { waitlisters: true } },
 } satisfies Prisma.ItemSelect;
 
 // Shared (collaborating) items additionally need the owner to group/label them.
@@ -47,7 +48,7 @@ export default async function MyItemsPage({
       // Project only the columns this list renders (the income summary needs type,
       // priceIls and status). Avoids hauling the (potentially large) `description`
       // free-text and other unused columns across every owned listing.
-      select: { ...itemSelect, _count: { select: { giveIfUnsoldSignups: true } } },
+      select: { ...itemSelect, _count: { select: { giveIfUnsoldSignups: true, waitlisters: true } } },
       orderBy: { createdAt: "desc" },
     }),
     collabOwnerIds.length
@@ -179,6 +180,12 @@ export default async function MyItemsPage({
                     🎁 {t("signups.countLink", { count: item._count.giveIfUnsoldSignups })}
                   </Link>
                 )}
+                <Link
+                  href={`/${locale}/my/items/${item.id}/waitlist`}
+                  className="mt-0.5 block text-xs font-medium text-sky-700 hover:underline dark:text-sky-400"
+                >
+                  👥 {t("waitlist.countLink", { count: item._count.waitlisters })}
+                </Link>
               </div>
               <PriceOrFreeBadge
                 type={item.type as "SELL" | "GIVE"}
@@ -241,6 +248,12 @@ export default async function MyItemsPage({
                     </span>
                     {" · "}👁 {t("item.viewsCount", { count: item.viewCount })}
                   </div>
+                  <Link
+                    href={`/${locale}/my/items/${item.id}/waitlist`}
+                    className="mt-0.5 block text-xs font-medium text-sky-700 hover:underline dark:text-sky-400"
+                  >
+                    👥 {t("waitlist.countLink", { count: item._count.waitlisters })}
+                  </Link>
                 </div>
                 <PriceOrFreeBadge
                   type={item.type as "SELL" | "GIVE"}

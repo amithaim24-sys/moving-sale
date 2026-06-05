@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { logClientEvent } from "@/lib/clientLog";
 
 export default function WhatsAppButton({
   itemId,
@@ -48,6 +49,10 @@ export default function WhatsAppButton({
       href={`/api/items/${itemId}/contact?locale=${locale}`}
       target="_blank"
       rel="noopener noreferrer"
+      // Log the click intent before navigating. Correlated with the server-side
+      // "whatsapp_contact" log, a client click with no matching server hit means
+      // the new tab never opened (blocked / offline) — otherwise invisible.
+      onClick={() => logClientEvent({ event: "client_whatsapp_click", itemId, meta: { variant } })}
       className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 text-base font-semibold ${styles}`}
     >
       <svg

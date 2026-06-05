@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { logClientEvent } from "@/lib/clientLog";
 
 export default function WhatsAppIconButton({
   itemId,
@@ -46,7 +47,12 @@ export default function WhatsAppIconButton({
       href={`/api/items/${itemId}/contact?locale=${locale}`}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={(e) => e.stopPropagation()}
+      // Stop the card's own click handler, then log the click intent so it can be
+      // correlated with the server-side "whatsapp_contact" outcome for debugging.
+      onClick={(e) => {
+        e.stopPropagation();
+        logClientEvent({ event: "client_whatsapp_click", itemId, meta: { variant: "icon" } });
+      }}
       aria-label={t("waMessageLabel")}
       title={t("waMessageLabel")}
       className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#25D366] p-2 text-xs font-semibold text-white shadow hover:bg-[#1ebe57] sm:px-3 sm:py-1.5"
