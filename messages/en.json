@@ -224,8 +224,13 @@
       "listingsTrend": "New listings · last 30 days",
       "itemsByStatus": "Items by status",
       "itemsByType": "Items by type",
-      "visitsTrend": "Visits (30 days)",
-      "clicksTrend": "Contact clicks (30 days)"
+      "visitsTrend": "Visits · last 30 days",
+      "clicksTrend": "Contact clicks · last 30 days",
+      "statAvg": "{value}/day avg",
+      "statPeak": "peak {value} · {date}",
+      "deltaTitle": "Last {days} days vs the {days} before",
+      "funnelTitle": "Visitor journey",
+      "ofPrevious": "Share of the previous step"
     },
     "activity": {
       "recentViews": "Recent views",

@@ -2,9 +2,10 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
-import { bucketByDay } from "@/lib/analytics";
-import TrendBars from "@/components/charts/TrendBars";
+import { buildTrend } from "@/lib/analytics";
+import TrendChart from "@/components/charts/TrendChart";
 import CategoryBars from "@/components/charts/CategoryBars";
+import Funnel from "@/components/charts/Funnel";
 import type { Locale } from "@/i18n/config";
 
 export default async function AdminDashboardPage({
@@ -97,32 +98,72 @@ export default async function AdminDashboardPage({
   const byType: Record<string, number> = {};
   for (const r of typeRows) byType[r.type] = r._count._all;
 
-  const viewsTrend = bucketByDay(viewsLog.map((v) => v.createdAt), 30, now, locale);
-  const itemsTrend = bucketByDay(itemsLog.map((v) => v.createdAt), 30, now, locale);
-  const visitsTrend = bucketByDay(visitsLog.map((v) => v.createdAt), 30, now, locale);
-  const clicksTrend = bucketByDay(clicksLog.map((v) => v.createdAt), 30, now, locale);
+  const viewsTrend = buildTrend(viewsLog.map((v) => v.createdAt), 30, now, locale);
+  const itemsTrend = buildTrend(itemsLog.map((v) => v.createdAt), 30, now, locale);
+  const visitsTrend = buildTrend(visitsLog.map((v) => v.createdAt), 30, now, locale);
+  const clicksTrend = buildTrend(clicksLog.map((v) => v.createdAt), 30, now, locale);
 
   const uniqueVisitorCount = uniqueVisitorRows.length;
 
   const num = (n: number) => n.toLocaleString(locale);
+  const num1 = (n: number) => n.toLocaleString(locale, { maximumFractionDigits: 1 });
   const ils = (n: number) => `₪${n.toLocaleString(locale)}`;
   const dtf = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
 
-  const kpis: { label: string; value: string }[] = [
-    { label: t("metrics.users"), value: num(userCount) },
-    { label: t("metrics.newUsers30"), value: num(newUsers30) },
-    { label: t("metrics.items"), value: num(itemCount) },
-    { label: t("metrics.newItems30"), value: num(newItems30) },
-    { label: t("metrics.loggedViews"), value: num(loggedViewCount) },
-    { label: t("metrics.totalViews"), value: num(viewsAgg._sum.viewCount ?? 0) },
-    { label: t("metrics.totalLikes"), value: num(likeCount) },
-    { label: t("metrics.signups"), value: num(signupCount) },
-    { label: t("metrics.reducedItems"), value: num(reducedCount) },
-    { label: t("metrics.potentialRevenue"), value: ils(potentialAgg._sum.priceIls ?? 0) },
-    { label: t("metrics.realizedRevenue"), value: ils(soldAgg._sum.priceIls ?? 0) },
-    { label: t("metrics.totalVisits"), value: num(totalVisits) },
-    { label: t("metrics.uniqueVisitors"), value: num(uniqueVisitorCount) },
-    { label: t("metrics.contactClicks"), value: num(totalContactClicks) },
+  // Pre-localized summary labels for each trend chart (keeps the chart i18n-free).
+  const statsFor = (tr: ReturnType<typeof buildTrend>) => ({
+    avg: t("charts.statAvg", { value: num1(tr.average) }),
+    peak: tr.peak.value > 0 ? t("charts.statPeak", { value: num(tr.peak.value), date: tr.peak.label }) : "",
+    deltaTitle: t("charts.deltaTitle", { days: Math.floor(tr.days / 2) }),
+  });
+
+  const totalViews = viewsAgg._sum.viewCount ?? 0;
+
+  // KPIs grouped into the four areas an admin reasons about separately, so the
+  // strip reads as sections instead of one undifferentiated wall of numbers.
+  const kpiSections: { title: string; cards: { label: string; value: string }[] }[] = [
+    {
+      title: t("metrics.sectionUsers"),
+      cards: [
+        { label: t("metrics.users"), value: num(userCount) },
+        { label: t("metrics.newUsers30"), value: num(newUsers30) },
+      ],
+    },
+    {
+      title: t("metrics.sectionItems"),
+      cards: [
+        { label: t("metrics.items"), value: num(itemCount) },
+        { label: t("metrics.newItems30"), value: num(newItems30) },
+        { label: t("metrics.reducedItems"), value: num(reducedCount) },
+      ],
+    },
+    {
+      title: t("metrics.sectionEngagement"),
+      cards: [
+        { label: t("metrics.totalVisits"), value: num(totalVisits) },
+        { label: t("metrics.uniqueVisitors"), value: num(uniqueVisitorCount) },
+        { label: t("metrics.totalViews"), value: num(totalViews) },
+        { label: t("metrics.loggedViews"), value: num(loggedViewCount) },
+        { label: t("metrics.contactClicks"), value: num(totalContactClicks) },
+        { label: t("metrics.totalLikes"), value: num(likeCount) },
+        { label: t("metrics.signups"), value: num(signupCount) },
+      ],
+    },
+    {
+      title: t("metrics.sectionRevenue"),
+      cards: [
+        { label: t("metrics.potentialRevenue"), value: ils(potentialAgg._sum.priceIls ?? 0) },
+        { label: t("metrics.realizedRevenue"), value: ils(soldAgg._sum.priceIls ?? 0) },
+      ],
+    },
+  ];
+
+  // Visitor journey: visit the site → view an item → click to make contact.
+  const pctOf = (part: number, whole: number) => (whole > 0 ? `${Math.round((part / whole) * 100)}%` : null);
+  const funnelRows = [
+    { label: t("metrics.totalVisits"), value: num(totalVisits), rawValue: totalVisits, rate: null, colorClass: "bg-violet-500" },
+    { label: t("metrics.totalViews"), value: num(totalViews), rawValue: totalViews, rate: pctOf(totalViews, totalVisits), colorClass: "bg-indigo-500" },
+    { label: t("metrics.contactClicks"), value: num(totalContactClicks), rawValue: totalContactClicks, rate: pctOf(totalContactClicks, totalViews), colorClass: "bg-rose-500" },
   ];
 
   const statusBars = [
@@ -141,46 +182,54 @@ export default async function AdminDashboardPage({
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("metrics.title")}</h1>
 
-      {/* KPI strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-        {kpis.map((kpi) => (
-          <div
-            key={kpi.label}
-            className="rounded-2xl bg-white p-4 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
-          >
-            <div className="text-2xl font-bold tabular-nums text-slate-900 dark:text-white">{kpi.value}</div>
-            <div className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{kpi.label}</div>
+      {/* KPI strip, grouped by area */}
+      <div className="space-y-5">
+        {kpiSections.map((section) => (
+          <div key={section.title}>
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              {section.title}
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+              {section.cards.map((kpi) => (
+                <div
+                  key={kpi.label}
+                  className="rounded-2xl bg-white p-4 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
+                >
+                  <div className="text-2xl font-bold tabular-nums text-slate-900 dark:text-white">{kpi.value}</div>
+                  <div className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{kpi.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
 
       {/* Trend charts */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title={t("charts.viewsTrend")}>
-          <TrendBars data={viewsTrend} accentClass="bg-indigo-500" ariaLabel={t("charts.viewsTrend")} />
-        </Panel>
-        <Panel title={t("charts.listingsTrend")}>
-          <TrendBars data={itemsTrend} accentClass="bg-emerald-500" ariaLabel={t("charts.listingsTrend")} />
-        </Panel>
-      </div>
-
-      {/* Visits + clicks trend charts */}
-      <div className="grid gap-4 lg:grid-cols-2">
         <Panel title={t("charts.visitsTrend")}>
-          <TrendBars data={visitsTrend} accentClass="bg-violet-500" ariaLabel={t("charts.visitsTrend")} />
+          <TrendChart trend={visitsTrend} color="#8b5cf6" locale={locale} stats={statsFor(visitsTrend)} />
+        </Panel>
+        <Panel title={t("charts.viewsTrend")}>
+          <TrendChart trend={viewsTrend} color="#6366f1" locale={locale} stats={statsFor(viewsTrend)} />
         </Panel>
         <Panel title={t("charts.clicksTrend")}>
-          <TrendBars data={clicksTrend} accentClass="bg-rose-500" ariaLabel={t("charts.clicksTrend")} />
+          <TrendChart trend={clicksTrend} color="#f43f5e" locale={locale} stats={statsFor(clicksTrend)} />
+        </Panel>
+        <Panel title={t("charts.listingsTrend")}>
+          <TrendChart trend={itemsTrend} color="#10b981" locale={locale} stats={statsFor(itemsTrend)} />
         </Panel>
       </div>
 
-      {/* Breakdowns */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      {/* Funnel + breakdowns */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Panel title={t("charts.funnelTitle")}>
+          <Funnel rows={funnelRows} ofPreviousTitle={t("charts.ofPrevious")} />
+        </Panel>
         <Panel title={t("charts.itemsByStatus")}>
-          <CategoryBars data={statusBars} />
+          <CategoryBars data={statusBars} locale={locale} />
         </Panel>
         <Panel title={t("charts.itemsByType")}>
-          <CategoryBars data={typeBars} />
+          <CategoryBars data={typeBars} locale={locale} />
         </Panel>
       </div>
 

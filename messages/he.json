@@ -224,8 +224,13 @@
       "listingsTrend": "פריטים חדשים · 30 הימים האחרונים",
       "itemsByStatus": "פריטים לפי סטטוס",
       "itemsByType": "פריטים לפי סוג",
-      "visitsTrend": "כניסות (30 ימים)",
-      "clicksTrend": "קליקים ליצירת קשר (30 ימים)"
+      "visitsTrend": "כניסות · 30 הימים האחרונים",
+      "clicksTrend": "קליקים ליצירת קשר · 30 הימים האחרונים",
+      "statAvg": "{value}/יום בממוצע",
+      "statPeak": "שיא {value} · {date}",
+      "deltaTitle": "{days} הימים האחרונים מול {days} שלפניהם",
+      "funnelTitle": "מסע המבקר",
+      "ofPrevious": "אחוז מהשלב הקודם"
     },
     "activity": {
       "recentViews": "צפיות אחרונות",
