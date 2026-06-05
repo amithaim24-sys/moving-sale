@@ -130,6 +130,9 @@ model Item {
   title       String
   description String
   type        String   // "SELL" | "GIVE"
+  // Optional grouping for browsing/filtering. One of the ITEM_CATEGORIES keys
+  // (e.g. "FURNITURE", "KITCHEN"); null means the seller left it unset.
+  category    String?
   condition   String?  // "NEW" | "LIKE_NEW" | "USED"
   priceIls    Int?
   previousPriceIls Int?

@@ -7,12 +7,13 @@ import ItemImageUploader, { type UploadedImage } from "./ItemImageUploader";
 import WhatsAppPhoneSidebar from "./WhatsAppPhoneSidebar";
 import Spinner from "./Spinner";
 import { useToast } from "./Toaster";
-import type { ItemCondition, ListingStatus, ListingType } from "@/lib/types";
+import { ITEM_CATEGORIES, type ItemCategory, type ItemCondition, type ListingStatus, type ListingType } from "@/lib/types";
 
 export type ItemFormValues = {
   title: string;
   description: string;
   type: ListingType;
+  category: ItemCategory | null;
   condition: ItemCondition | null;
   priceIls: number | null;
   giveIfUnsold: boolean;
@@ -71,6 +72,7 @@ export default function ItemForm({
       title: values.title,
       description: values.description,
       type: values.type,
+      category: values.category,
       condition: values.condition,
       priceIls: values.type === "GIVE" ? null : values.priceIls,
       giveIfUnsold: values.type === "GIVE" ? false : values.giveIfUnsold,
@@ -210,6 +212,26 @@ export default function ItemForm({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label htmlFor="field-category" className="label">
+            {t("form.category")} <span className="text-xs text-slate-400">({t("form.optional")})</span>
+          </label>
+          <select
+            id="field-category"
+            className="field"
+            value={values.category ?? ""}
+            onChange={(e) =>
+              set("category", e.target.value === "" ? null : (e.target.value as ItemCategory))
+            }
+          >
+            <option value="">—</option>
+            {ITEM_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {t(`item.category.${c}`)}
+              </option>
+            ))}
+          </select>
+        </div>
         <div>
           <label htmlFor="field-type" className="label">{t("form.type")}</label>
           <select

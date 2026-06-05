@@ -29,6 +29,7 @@ export default async function NewItemPage({
           title: "",
           description: "",
           type: "SELL",
+          category: null,
           condition: null,
           priceIls: null,
           giveIfUnsold: false,

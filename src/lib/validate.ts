@@ -1,9 +1,10 @@
-import type { ItemCondition, ListingStatus, ListingType } from "./types";
+import { ITEM_CATEGORIES, type ItemCategory, type ItemCondition, type ListingStatus, type ListingType } from "./types";
 
 export type ItemPayload = {
   title: string;
   description: string;
   type: ListingType;
+  category: ItemCategory | null;
   condition: ItemCondition | null;
   priceIls: number | null;
   giveIfUnsold: boolean;
@@ -58,6 +59,16 @@ export function parseItemPayload(raw: unknown, partial = false): Partial<ItemPay
   }
   // A free item has no price to mark down, so a reduction never applies.
   if (out.type === "GIVE") out.markReduced = false;
+
+  if (b.category !== undefined) {
+    if (b.category === null || b.category === "") {
+      out.category = null;
+    } else if (ITEM_CATEGORIES.includes(b.category as ItemCategory)) {
+      out.category = b.category as ItemCategory;
+    } else {
+      throw new Error("Bad category");
+    }
+  }
 
   if (b.condition !== undefined) {
     if (b.condition === null || b.condition === "") {

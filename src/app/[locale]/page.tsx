@@ -6,9 +6,10 @@ import CatalogSearch from "@/components/CatalogSearch";
 import EmptyState from "@/components/EmptyState";
 import DuplicateSiteCTA from "@/components/DuplicateSiteCTA";
 import { getOptionalUser } from "@/lib/guards";
+import { ITEM_CATEGORIES, type ItemCategory } from "@/lib/types";
 import type { Locale } from "@/i18n/config";
 
-type SearchParams = Promise<{ type?: string; q?: string }>;
+type SearchParams = Promise<{ type?: string; q?: string; category?: string }>;
 
 export default async function CatalogPage({
   params,
@@ -19,8 +20,11 @@ export default async function CatalogPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { type, q: rawQ } = await searchParams;
+  const { type, q: rawQ, category: rawCategory } = await searchParams;
   const q = rawQ?.trim().slice(0, 100) || undefined;
+  const category = ITEM_CATEGORIES.includes(rawCategory as ItemCategory)
+    ? (rawCategory as ItemCategory)
+    : undefined;
   const t = await getTranslations();
 
   const user = await getOptionalUser();
@@ -29,6 +33,7 @@ export default async function CatalogPage({
     where: {
       status: "AVAILABLE",
       ...(type === "SELL" || type === "GIVE" ? { type } : {}),
+      ...(category ? { category } : {}),
       ...(q
         ? {
             OR: [
@@ -55,6 +60,21 @@ export default async function CatalogPage({
     orderBy: { createdAt: "desc" },
     take: 60,
   });
+
+  // Which categories actually have available listings — so the quick-filter bar
+  // only offers categories a buyer can find something in. Computed over all
+  // available items (not the current search/type filter) so the bar stays stable.
+  const presentCategoryRows = await prisma.item.groupBy({
+    by: ["category"],
+    where: { status: "AVAILABLE", category: { not: null } },
+    _count: true,
+  });
+  const presentCategories = new Set(presentCategoryRows.map((r) => r.category));
+  // Keep our canonical order; always include a currently-selected category so the
+  // active chip can't vanish from under the user.
+  const categoryChips = ITEM_CATEGORIES.filter(
+    (c) => presentCategories.has(c) || c === category,
+  );
 
   const likedIds = user
     ? new Set(
@@ -94,6 +114,7 @@ export default async function CatalogPage({
         <CatalogSearch
           locale={locale}
           type={type === "SELL" || type === "GIVE" ? type : undefined}
+          category={category}
           initialQuery={q ?? ""}
         />
         <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -101,6 +122,7 @@ export default async function CatalogPage({
             const active = (type ?? "") === opt.key;
             const href = `/${locale}?${new URLSearchParams({
               ...(opt.key ? { type: opt.key } : {}),
+              ...(category ? { category } : {}),
               ...(q ? { q } : {}),
             }).toString()}`;
             return (
@@ -118,6 +140,36 @@ export default async function CatalogPage({
             );
           })}
         </div>
+        {/* Category quick-filter — only categories with available listings are
+            shown. The "All" chip clears the category filter. Hidden entirely when
+            nothing is categorized yet. */}
+        {categoryChips.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {[{ key: "", label: t("filter.all") }, ...categoryChips.map((c) => ({ key: c, label: t(`item.category.${c}`) }))].map(
+            (opt) => {
+              const active = (category ?? "") === opt.key;
+              const href = `/${locale}?${new URLSearchParams({
+                ...(type === "SELL" || type === "GIVE" ? { type } : {}),
+                ...(opt.key ? { category: opt.key } : {}),
+                ...(q ? { q } : {}),
+              }).toString()}`;
+              return (
+                <a
+                  key={opt.key || "all"}
+                  href={href}
+                  className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition ${
+                    active
+                      ? "border-brand bg-brand/10 text-brand dark:bg-brand/20"
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  {opt.label}
+                </a>
+              );
+            },
+          )}
+        </div>
+        )}
       </div>
 
       {q && (
@@ -130,7 +182,7 @@ export default async function CatalogPage({
         // A search or type filter is active: there ARE listings, this query just
         // didn't match any. Offer to clear the filters rather than (misleadingly)
         // inviting the user to "be the first to post".
-        q || type === "SELL" || type === "GIVE" ? (
+        q || category || type === "SELL" || type === "GIVE" ? (
           <EmptyState
             emoji="🔍"
             title={t("filter.noResultsTitle")}

@@ -5,7 +5,7 @@ import { canEditOwner } from "@/lib/collab";
 import { prisma } from "@/lib/prisma";
 import ItemForm from "@/components/ItemForm";
 import type { Locale } from "@/i18n/config";
-import type { ItemCondition, ListingStatus, ListingType } from "@/lib/types";
+import type { ItemCategory, ItemCondition, ListingStatus, ListingType } from "@/lib/types";
 
 export default async function EditItemPage({
   params,
@@ -45,6 +45,7 @@ export default async function EditItemPage({
           title: item.title,
           description: item.description,
           type: item.type as ListingType,
+          category: (item.category as ItemCategory | null) ?? null,
           condition: (item.condition as ItemCondition | null) ?? null,
           priceIls: item.priceIls,
           giveIfUnsold: item.giveIfUnsold,

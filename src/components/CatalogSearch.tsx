@@ -16,10 +16,12 @@ import { useTranslations } from "next-intl";
 export default function CatalogSearch({
   locale,
   type,
+  category,
   initialQuery,
 }: {
   locale: string;
   type?: string;
+  category?: string;
   initialQuery: string;
 }) {
   const router = useRouter();
@@ -43,6 +45,7 @@ export default function CatalogSearch({
     committedRef.current = trimmed;
     const params = new URLSearchParams();
     if (type) params.set("type", type);
+    if (category) params.set("category", category);
     if (trimmed) params.set("q", trimmed);
     const qs = params.toString();
     router.push(qs ? `/${locale}?${qs}` : `/${locale}`);
@@ -71,6 +74,7 @@ export default function CatalogSearch({
       role="search"
     >
       {type ? <input type="hidden" name="type" value={type} /> : null}
+      {category ? <input type="hidden" name="category" value={category} /> : null}
       <label htmlFor="catalog-search" className="sr-only">
         {t("searchPlaceholder")}
       </label>

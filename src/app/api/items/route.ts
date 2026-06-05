@@ -40,6 +40,7 @@ export async function POST(req: Request) {
         title: payload.title!,
         description: payload.description ?? "",
         type: payload.type!,
+        category: payload.category ?? null,
         condition: payload.condition ?? null,
         priceIls: payload.priceIls ?? null,
         giveIfUnsold: payload.giveIfUnsold ?? false,
