@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
-import { buildTrend } from "@/lib/analytics";
+import { buildTrend, TIME_ZONE } from "@/lib/analytics";
 import TrendChart from "@/components/charts/TrendChart";
 import CategoryBars from "@/components/charts/CategoryBars";
 import Funnel from "@/components/charts/Funnel";
@@ -108,7 +108,7 @@ export default async function AdminDashboardPage({
   const num = (n: number) => n.toLocaleString(locale);
   const num1 = (n: number) => n.toLocaleString(locale, { maximumFractionDigits: 1 });
   const ils = (n: number) => `₪${n.toLocaleString(locale)}`;
-  const dtf = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
+  const dtf = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: TIME_ZONE });
 
   // Pre-localized summary labels for each trend chart (keeps the chart i18n-free).
   const statsFor = (tr: ReturnType<typeof buildTrend>) => ({

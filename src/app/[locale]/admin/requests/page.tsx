@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import AdminRequestRow from "./AdminRequestRow";
+import { TIME_ZONE } from "@/lib/analytics";
 import type { Locale } from "@/i18n/config";
 
 // Leads from the public "I want a website like this" call-to-action.
@@ -25,6 +26,7 @@ export default async function AdminRequestsPage({
   const dateFmt = new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: TIME_ZONE,
   });
 
   return (

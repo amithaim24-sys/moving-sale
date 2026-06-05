@@ -1,7 +1,16 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// One point in a daily time series. `iso` is the UTC day key (yyyy-mm-dd) used as a
-// stable React key and tooltip date; `label` is the short localized axis label.
+// The site serves an Israeli audience, so "today" and the daily trend buckets
+// follow Israel local time — not the server's UTC clock. Import this anywhere a
+// date/time is shown to the admin so everything reads on the same wall clock.
+export const TIME_ZONE = "Asia/Jerusalem";
+
+// yyyy-mm-dd for a Date in a given timezone (en-CA gives ISO-style ordering).
+const ymd = (timeZone: string) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" });
+
+// One point in a daily time series. `iso` is the calendar day key (yyyy-mm-dd)
+// used as a stable React key; `label` is the short localized axis label.
 export type TrendPoint = { iso: string; label: string; value: number };
 
 // A full trend ready for the chart: the daily series plus the summary numbers an
@@ -21,42 +30,40 @@ export type Trend = {
   days: number;
 };
 
-// Group a set of timestamps into one bucket per UTC day for the last `days` days,
-// ending today. Returns chronological { label, value } pairs ready for a bar chart.
-// UTC day boundaries keep results deterministic regardless of server timezone.
-export function bucketByDay(
-  dates: Date[],
-  days: number,
-  now: number,
-  locale: string,
-): { label: string; value: number }[] {
-  return buildTrend(dates, days, now, locale).points.map((p) => ({ label: p.label, value: p.value }));
-}
-
-// Build a full Trend (series + summary stats) from raw timestamps.
+// Build a full Trend (series + summary stats) from raw timestamps, bucketed by
+// Israel local calendar day. Day keys are treated as pure calendar dates and
+// stepped via UTC midnight, so the math is DST-safe (no wall-clock offset
+// arithmetic that breaks across Israel's spring/autumn clock changes).
 export function buildTrend(
   dates: Date[],
   days: number,
   now: number,
   locale: string,
 ): Trend {
-  const endIdx = Math.floor(now / DAY_MS);
-  const startIdx = endIdx - (days - 1);
-  const buckets = new Array<number>(days).fill(0);
+  const israelYmd = ymd(TIME_ZONE);
+  const utcYmd = ymd("UTC");
 
-  for (const d of dates) {
-    const pos = Math.floor(d.getTime() / DAY_MS) - startIdx;
-    if (pos >= 0 && pos < days) buckets[pos]++;
-  }
+  // The calendar date of "today" in Israel, as a UTC-midnight anchor to step from.
+  const [ty, tm, td] = israelYmd.format(new Date(now)).split("-").map(Number);
+  const endUTC = Date.UTC(ty, tm - 1, td);
 
   const labelFmt = new Intl.DateTimeFormat(locale, { day: "numeric", month: "numeric", timeZone: "UTC" });
-  const isoFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "UTC" }); // yyyy-mm-dd
 
-  const points: TrendPoint[] = buckets.map((value, i) => {
-    const date = new Date((startIdx + i) * DAY_MS);
-    return { iso: isoFmt.format(date), label: labelFmt.format(date), value };
-  });
+  const index = new Map<string, number>();
+  const points: TrendPoint[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const dt = new Date(endUTC - i * DAY_MS);
+    const iso = utcYmd.format(dt);
+    index.set(iso, points.length);
+    points.push({ iso, label: labelFmt.format(dt), value: 0 });
+  }
 
+  for (const d of dates) {
+    const pos = index.get(israelYmd.format(d));
+    if (pos !== undefined) points[pos].value++;
+  }
+
+  const buckets = points.map((p) => p.value);
   const total = buckets.reduce((s, v) => s + v, 0);
   const average = total / days;
 
@@ -66,8 +73,8 @@ export function buildTrend(
   const half = Math.floor(days / 2);
   const priorTotal = buckets.slice(0, days - half).reduce((s, v) => s + v, 0);
   const recentTotal = buckets.slice(days - half).reduce((s, v) => s + v, 0);
-  // Normalize both halves to the same number of days before comparing, so an
-  // odd window (e.g. 30 → 15/15) doesn't bias the delta.
+  // Normalize both halves to a per-day rate before comparing, so an odd window
+  // (e.g. 30 → 15/15) doesn't bias the delta.
   const priorDays = days - half;
   const recentDays = half;
   const priorRate = priorDays > 0 ? priorTotal / priorDays : 0;

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
+import { TIME_ZONE } from "@/lib/analytics";
 import type { Locale } from "@/i18n/config";
 
 // Full "who viewed what" log: the most recent attributable (signed-in) item views.
@@ -26,7 +27,7 @@ export default async function AdminViewsPage({
     },
   });
 
-  const dtf = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
+  const dtf = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short", timeZone: TIME_ZONE });
 
   return (
     <div className="space-y-4">

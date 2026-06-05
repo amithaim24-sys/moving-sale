@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
+import { TIME_ZONE } from "@/lib/analytics";
 import type { Locale } from "@/i18n/config";
 import ClearLogsButton from "./ClearLogsButton";
 
@@ -100,7 +101,7 @@ export default async function AdminLogsPage({
   const lostClicks = Math.max(0, waClicks7 - waSuccess);
 
   const num = (n: number) => n.toLocaleString(locale);
-  const dtf = new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "medium" });
+  const dtf = new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "medium", timeZone: TIME_ZONE });
 
   // Preserve the other filter when building a filter link.
   const buildHref = (next: { event?: string; level?: string }) => {
