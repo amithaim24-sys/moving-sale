@@ -8,6 +8,7 @@
   },
   "nav": {
     "browse": "Browse",
+    "myStore": "My store",
     "myItems": "My items",
     "newItem": "New item",
     "likes": "Saved",
@@ -188,6 +189,17 @@
     "notified": "Messaged",
     "readyMessage": "Hi {name}! 🙂 \"{item}\" is now available — let me know if you'd still like to buy it: {url}"
   },
+  "store": {
+    "shareLabel": "Share link",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "manageItems": "Manage items",
+    "inactiveBadge": "Not live",
+    "yourStoreTitle": "Your store: {name}",
+    "yourStoreLive": "Your store is live. Share this link so people can browse your items.",
+    "yourStoreInactive": "Your store is not live yet. Ask the admin to activate it.",
+    "viewStore": "View store"
+  },
   "admin": {
     "dashboard": "Dashboard",
     "users": "Users",
@@ -195,6 +207,7 @@
     "viewsTab": "Views",
     "clicksTab": "Clicks",
     "logsTab": "Logs",
+    "storesTab": "Stores",
     "requestsTab": "Site requests",
     "role": "Role",
     "promote": "Make admin",
@@ -325,6 +338,35 @@
       "markNew": "Mark new",
       "delete": "Delete",
       "confirmDelete": "Delete this request permanently?"
+    },
+    "stores": {
+      "title": "Stores",
+      "intro": "Give someone their own copy of this marketplace. Each store has its own public link and shows only that owner's items. Create one for a user who has already signed in — their existing items move into the new store.",
+      "empty": "No stores yet. Create the first one below.",
+      "createTitle": "Create a store",
+      "createButton": "Create store",
+      "creating": "Creating…",
+      "createdOk": "Store created:",
+      "createFailed": "Could not create store",
+      "fieldName": "Store name",
+      "fieldNamePlaceholder": "e.g. Dana's Moving Sale",
+      "fieldOwnerEmail": "Owner email",
+      "fieldSlug": "Link (optional)",
+      "fieldSlugPlaceholder": "auto from name",
+      "fieldTagline": "Tagline (optional)",
+      "fieldTaglinePlaceholder": "e.g. Everything must go before July",
+      "ownerHint": "The owner must have signed in to this site at least once. They'll be able to add and manage items in their store.",
+      "open": "Open",
+      "copyLink": "Copy link",
+      "copied": "Copied!",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "active": "Live",
+      "inactive": "Not live",
+      "delete": "Delete",
+      "confirmDelete": "Delete this store? Its items return to the main catalog; nothing is deleted.",
+      "itemsCount": "{count} items",
+      "actionFailed": "Action failed"
     }
   },
   "duplicate": {

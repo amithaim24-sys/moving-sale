@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { getOptionalUser } from "@/lib/guards";
+import { getOwnedStore } from "@/lib/stores";
 import LanguageToggle from "./LanguageToggle";
 import DarkModeToggle from "./DarkModeToggle";
 import SignOutButton from "./SignOutButton";
@@ -15,6 +16,10 @@ export default async function Header({ locale }: { locale: Locale }) {
     { href: `/${locale}`, label: t("nav.browse") },
   ];
   if (user) {
+    const ownedStore = await getOwnedStore(user.id);
+    if (ownedStore) {
+      navItems.push({ href: `/${locale}/s/${ownedStore.slug}`, label: t("nav.myStore") });
+    }
     navItems.push({ href: `/${locale}/my/items`, label: t("nav.myItems") });
     navItems.push({ href: `/${locale}/my/items/new`, label: t("nav.newItem") });
     navItems.push({ href: `/${locale}/my/likes`, label: t("nav.likes") });

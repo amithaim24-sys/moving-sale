@@ -16,9 +16,14 @@ export async function POST(req: Request) {
 
   const me = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { whatsappPhone: true, banned: true },
+    select: { whatsappPhone: true, banned: true, store: { select: { id: true } } },
   });
   if (!me || me.banned || session.user.banned) return new NextResponse("Forbidden", { status: 403 });
+
+  // A store owner's items are filed into their own store's catalog; everyone else's
+  // land in the root catalog (storeId = null). This is what isolates each white-label
+  // marketplace — the owner never has to pick a store, it follows from who they are.
+  const storeId = me.store?.id ?? null;
 
   let payload;
   try {
@@ -37,6 +42,7 @@ export async function POST(req: Request) {
     const item = await prisma.item.create({
       data: {
         ownerId: session.user.id,
+        storeId,
         title: payload.title!,
         description: payload.description ?? "",
         type: payload.type!,

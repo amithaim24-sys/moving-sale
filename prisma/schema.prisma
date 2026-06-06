@@ -36,6 +36,33 @@ model User {
   giveIfUnsoldSignups GiveIfUnsoldSignup[]
   // Per-visit log of items this user has viewed (admin analytics).
   itemViews ItemView[]
+  // The white-label store this user owns and self-manages, if any. A user owns at
+  // most one store; null means they're a regular contributor to the root catalog.
+  store Store?
+}
+
+// A white-label marketplace carved out of the same app + database. The super-admin
+// creates one per customer in the admin panel; it gets a public catalog at
+// `/<locale>/s/<slug>` showing only items whose `storeId` points here. The store
+// `owner` signs in and self-manages their own items (any item they create is
+// auto-filed into their store). A `null` Item.storeId means the item belongs to the
+// root/primary catalog (the original moving sale), NOT to any white-label store.
+model Store {
+  id        String   @id @default(cuid())
+  // URL slug used in `/s/<slug>`. Lowercase kebab-case, globally unique.
+  slug      String   @unique
+  // Display name shown as the catalog heading (e.g. "Dana's Moving Sale").
+  name      String
+  tagline   String?
+  // The user who owns and manages this store. One store per user.
+  ownerId   String   @unique
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  // When false the public catalog 404s for everyone except the owner/admin
+  // (lets you stage a store before sharing the link, or take one offline).
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  items Item[]
 }
 
 // Account-level edit sharing: the owner grants a collaborator edit access to ALL
@@ -127,6 +154,11 @@ model Item {
   id          String   @id @default(cuid())
   ownerId     String
   owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  // Which white-label store's catalog this item appears in. `null` = the root/primary
+  // catalog (the original moving sale). Set automatically at creation from the
+  // creator's owned store; an item never appears in more than one store's catalog.
+  storeId     String?
+  store       Store?   @relation(fields: [storeId], references: [id], onDelete: SetNull)
   title       String
   description String
   type        String   // "SELL" | "GIVE"
@@ -153,6 +185,8 @@ model Item {
 
   @@index([status, createdAt])
   @@index([ownerId])
+  // Per-store catalog listing: filter by store, then status, newest first.
+  @@index([storeId, status, createdAt])
 }
 
 // Append-only log of which signed-in user viewed which item, and when. Powers the

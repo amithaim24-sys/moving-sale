@@ -4,8 +4,11 @@ import { Prisma } from "@prisma/client";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireUser } from "@/lib/guards";
 import { getCollaboratorOwnerIds } from "@/lib/collab";
+import { getOwnedStore } from "@/lib/stores";
+import { absoluteUrl } from "@/lib/url";
 import { prisma } from "@/lib/prisma";
 import PriceOrFreeBadge from "@/components/PriceOrFreeBadge";
+import StoreShareBar from "@/components/StoreShareBar";
 import MyItemActions from "./MyItemActions";
 import type { Locale } from "@/i18n/config";
 
@@ -40,7 +43,11 @@ export default async function MyItemsPage({
   const t = await getTranslations();
   const user = await requireUser();
 
-  const collabOwnerIds = await getCollaboratorOwnerIds(user.id);
+  const [collabOwnerIds, ownedStore] = await Promise.all([
+    getCollaboratorOwnerIds(user.id),
+    getOwnedStore(user.id),
+  ]);
+  const storeUrl = ownedStore ? await absoluteUrl(`/${locale}/s/${ownedStore.slug}`) : null;
 
   const [items, sharedItems] = await Promise.all([
     prisma.item.findMany({
@@ -105,6 +112,24 @@ export default async function MyItemsPage({
           </Link>
         </div>
       </div>
+      {ownedStore && storeUrl && (
+        <div className="space-y-2 rounded-2xl bg-brand/5 p-4 ring-1 ring-brand/20 dark:bg-brand/10">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                {t("store.yourStoreTitle", { name: ownedStore.name })}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {ownedStore.active ? t("store.yourStoreLive") : t("store.yourStoreInactive")}
+              </p>
+            </div>
+            <Link href={`/${locale}/s/${ownedStore.slug}`} className="btn-secondary text-sm">
+              {t("store.viewStore")}
+            </Link>
+          </div>
+          <StoreShareBar url={storeUrl} />
+        </div>
+      )}
       {sellItems.length > 0 && (
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-200 dark:bg-amber-900/20 dark:ring-amber-800/60">

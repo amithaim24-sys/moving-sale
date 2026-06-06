@@ -18,13 +18,18 @@ export default function CatalogSearch({
   type,
   category,
   initialQuery,
+  basePath,
 }: {
   locale: string;
   type?: string;
   category?: string;
   initialQuery: string;
+  // Path the search submits/navigates to. Defaults to the root catalog; a store
+  // catalog passes `/<locale>/s/<slug>` so search stays within that store.
+  basePath?: string;
 }) {
   const router = useRouter();
+  const path = basePath ?? `/${locale}`;
   const t = useTranslations("filter");
   const [value, setValue] = useState(initialQuery);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +53,7 @@ export default function CatalogSearch({
     if (category) params.set("category", category);
     if (trimmed) params.set("q", trimmed);
     const qs = params.toString();
-    router.push(qs ? `/${locale}?${qs}` : `/${locale}`);
+    router.push(qs ? `${path}?${qs}` : path);
   }
 
   // Debounce live search while typing.
@@ -66,7 +71,7 @@ export default function CatalogSearch({
 
   return (
     <form
-      action={`/${locale}`}
+      action={path}
       onSubmit={(e) => {
         e.preventDefault();
         navigate(value);
