@@ -18,6 +18,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      // Let a Google sign-in attach to a user row that already exists for the same
+      // email but has no linked OAuth account yet. This powers admin-provisioned
+      // store owners: the admin can create a store for an email before that person
+      // has ever signed in (a placeholder user is created), and their first Google
+      // sign-in links to it instead of erroring with OAuthAccountNotLinked. Safe
+      // here because Google is the only provider and it returns verified emails.
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   pages: { signIn: "/signin" },

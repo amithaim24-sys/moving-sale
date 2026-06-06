@@ -40,17 +40,23 @@ export async function POST(req: Request) {
 
   if (!name) return new NextResponse("Store name is required", { status: 400 });
   if (!ownerEmail) return new NextResponse("Owner email is required", { status: 400 });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
+    return new NextResponse("Enter a valid owner email", { status: 400 });
+  }
 
-  const owner = await prisma.user.findFirst({
+  // Find the owner's account, or pre-provision a placeholder one. The owner does NOT
+  // need to have signed in yet: we create a user row keyed by their email, and their
+  // first Google sign-in links to it (allowDangerousEmailAccountLinking in lib/auth).
+  const existing = await prisma.user.findFirst({
     where: { email: { equals: ownerEmail, mode: "insensitive" } },
     select: { id: true, store: { select: { id: true } } },
   });
-  if (!owner) {
-    return new NextResponse("No user with that email — ask them to sign in once first", { status: 404 });
-  }
-  if (owner.store) {
+  if (existing?.store) {
     return new NextResponse("That user already owns a store", { status: 409 });
   }
+  const ownerId =
+    existing?.id ??
+    (await prisma.user.create({ data: { email: ownerEmail }, select: { id: true } })).id;
 
   // Resolve the slug: use the admin-supplied one (validated) or derive a unique one
   // from the name.
@@ -69,11 +75,12 @@ export async function POST(req: Request) {
   try {
     const store = await prisma.$transaction(async (tx) => {
       const created = await tx.store.create({
-        data: { name, slug, tagline, ownerId: owner.id },
+        data: { name, slug, tagline, ownerId },
         select: { id: true, slug: true },
       });
-      // Move the owner's existing listings into their new store.
-      await tx.item.updateMany({ where: { ownerId: owner.id }, data: { storeId: created.id } });
+      // Move the owner's existing listings into their new store (none yet for a
+      // freshly provisioned placeholder owner).
+      await tx.item.updateMany({ where: { ownerId }, data: { storeId: created.id } });
       return created;
     });
     return NextResponse.json({ id: store.id, slug: store.slug });

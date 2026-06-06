@@ -355,7 +355,7 @@
       "fieldSlugPlaceholder": "auto from name",
       "fieldTagline": "Tagline (optional)",
       "fieldTaglinePlaceholder": "e.g. Everything must go before July",
-      "ownerHint": "The owner must have signed in to this site at least once. They'll be able to add and manage items in their store.",
+      "ownerHint": "Enter the owner's email — they don't need an account yet. When they first sign in with Google using this email, they'll automatically own the store and can add and manage its items.",
       "open": "Open",
       "copyLink": "Copy link",
       "copied": "Copied!",
