@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import ItemCard from "@/components/ItemCard";
@@ -8,6 +9,93 @@ import { ITEM_CATEGORIES, type ItemCategory } from "@/lib/types";
 import type { Locale } from "@/i18n/config";
 
 type Viewer = { id: string; name?: string | null } | null;
+
+// Shape stored in the Vercel Data Cache. Note: we deliberately reduce the
+// owner's phone to a boolean (`hasPhone`) before caching so no PII (the actual
+// WhatsApp number) is ever written to the cache. Whether the number is shown
+// is decided per-request from the viewer's auth state.
+type CachedCatalogItem = {
+  id: string;
+  title: string;
+  type: string;
+  priceIls: number | null;
+  previousPriceIls: number | null;
+  giveIfUnsold: boolean;
+  condition: string | null;
+  images: { url: string }[];
+  imageCount: number;
+  owner: { name: string | null; city: string | null; hasPhone: boolean };
+};
+
+const CATALOG_ITEM_SELECT = {
+  id: true,
+  title: true,
+  type: true,
+  priceIls: true,
+  previousPriceIls: true,
+  giveIfUnsold: true,
+  condition: true,
+  images: { orderBy: { sortOrder: "asc" as const }, take: 1, select: { url: true } },
+  owner: { select: { name: true, whatsappPhone: true, city: true } },
+  _count: { select: { images: true } },
+} as const;
+
+type CatalogWhere = {
+  storeId: string | null;
+  status: "AVAILABLE";
+  type?: "SELL" | "GIVE";
+  category?: ItemCategory;
+};
+
+// Runs the actual listing query and strips the phone number down to a boolean.
+async function runCatalogQuery(where: CatalogWhere): Promise<CachedCatalogItem[]> {
+  const rows = await prisma.item.findMany({
+    where,
+    select: CATALOG_ITEM_SELECT,
+    orderBy: { createdAt: "desc" },
+    take: 60,
+  });
+  return rows.map((item) => ({
+    id: item.id,
+    title: item.title,
+    type: item.type,
+    priceIls: item.priceIls,
+    previousPriceIls: item.previousPriceIls,
+    giveIfUnsold: item.giveIfUnsold,
+    condition: item.condition,
+    images: item.images,
+    imageCount: item._count.images,
+    owner: { name: item.owner.name, city: item.owner.city, hasPhone: !!item.owner.whatsappPhone },
+  }));
+}
+
+// Cached catalog read for the common, non-personalized, non-search views. The
+// item rows are identical for every viewer given the same filters, so they're a
+// perfect Data Cache fit. 60s time-based revalidation bounds staleness for any
+// mutation we don't explicitly invalidate; the "catalog" tags let item
+// create/update invalidate immediately. Free-text search bypasses this.
+const getCachedCatalog = (storeId: string | null, type?: "SELL" | "GIVE", category?: ItemCategory) =>
+  unstable_cache(
+    () => runCatalogQuery({ storeId, status: "AVAILABLE", ...(type ? { type } : {}), ...(category ? { category } : {}) }),
+    ["catalog-items", storeId ?? "root", type ?? "all", category ?? "all"],
+    { revalidate: 60, tags: ["catalog", `catalog:${storeId ?? "root"}`] },
+  )();
+
+// Which categories have available listings in this store. Depends only on
+// storeId (not the active filters), so it's cached per store.
+const getCachedCategories = (storeId: string | null) =>
+  unstable_cache(
+    async () => {
+      const rows = await prisma.item.groupBy({
+        by: ["category"],
+        where: { storeId, status: "AVAILABLE", category: { not: null } },
+        _count: true,
+      });
+      return rows.map((r) => r.category).filter((c): c is string => c != null);
+    },
+    ["catalog-categories", storeId ?? "root"],
+    { revalidate: 60, tags: ["catalog", `catalog:${storeId ?? "root"}`] },
+  )();
 
 // Shared catalog body used by both the root/primary catalog (storeId = null) and a
 // white-label store catalog (storeId = the store's id). All listing queries are
@@ -37,44 +125,45 @@ export default async function CatalogView({
     ? (rawCategory as ItemCategory)
     : undefined;
 
-  const items = await prisma.item.findMany({
-    where: {
-      storeId,
-      status: "AVAILABLE",
-      ...(type === "SELL" || type === "GIVE" ? { type } : {}),
-      ...(category ? { category } : {}),
-      ...(q
-        ? {
+  const typeFilter = type === "SELL" || type === "GIVE" ? type : undefined;
+
+  // Free-text search bypasses the Data Cache: queries are unbounded (one cache
+  // entry per phrase) and rarely repeated, so caching them only bloats storage.
+  // The common no-search views (all / by type / by category) are served from
+  // the cache.
+  const items: CachedCatalogItem[] = q
+    ? (
+        await prisma.item.findMany({
+          where: {
+            storeId,
+            status: "AVAILABLE",
+            ...(typeFilter ? { type: typeFilter } : {}),
+            ...(category ? { category } : {}),
             OR: [
               { title: { contains: q, mode: "insensitive" } },
               { description: { contains: q, mode: "insensitive" } },
             ],
-          }
-        : {}),
-    },
-    select: {
-      id: true,
-      title: true,
-      type: true,
-      priceIls: true,
-      previousPriceIls: true,
-      giveIfUnsold: true,
-      condition: true,
-      images: { orderBy: { sortOrder: "asc" }, take: 1, select: { url: true } },
-      owner: { select: { name: true, whatsappPhone: true, city: true } },
-      _count: { select: { images: true } },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 60,
-  });
+          },
+          select: CATALOG_ITEM_SELECT,
+          orderBy: { createdAt: "desc" },
+          take: 60,
+        })
+      ).map((item) => ({
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        priceIls: item.priceIls,
+        previousPriceIls: item.previousPriceIls,
+        giveIfUnsold: item.giveIfUnsold,
+        condition: item.condition,
+        images: item.images,
+        imageCount: item._count.images,
+        owner: { name: item.owner.name, city: item.owner.city, hasPhone: !!item.owner.whatsappPhone },
+      }))
+    : await getCachedCatalog(storeId, typeFilter, category);
 
   // Categories that actually have available listings in THIS catalog.
-  const presentCategoryRows = await prisma.item.groupBy({
-    by: ["category"],
-    where: { storeId, status: "AVAILABLE", category: { not: null } },
-    _count: true,
-  });
-  const presentCategories = new Set(presentCategoryRows.map((r) => r.category));
+  const presentCategories = new Set(await getCachedCategories(storeId));
   const categoryChips = ITEM_CATEGORIES.filter(
     (c) => presentCategories.has(c) || c === category,
   );
@@ -212,11 +301,11 @@ export default async function CatalogView({
                 giveIfUnsold: item.giveIfUnsold,
                 condition: item.condition,
                 images: item.images,
-                imageCount: item._count.images,
+                imageCount: item.imageCount,
                 owner: {
                   name: item.owner.name,
                   city: item.owner.city,
-                  hasPhone: !!viewer && !!item.owner.whatsappPhone,
+                  hasPhone: !!viewer && item.owner.hasPhone,
                 },
               }}
             />

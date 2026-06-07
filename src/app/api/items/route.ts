@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseItemPayload } from "@/lib/validate";
@@ -62,6 +63,13 @@ export async function POST(req: Request) {
           : undefined,
       },
     });
+    // A newly published listing should show up on the (cached) catalog right
+    // away rather than after the 60s revalidate window. Drafts aren't listed,
+    // so they don't need to bust the cache.
+    if (status === "AVAILABLE") {
+      revalidateTag("catalog");
+      revalidateTag(`catalog:${storeId ?? "root"}`);
+    }
     const ctx = requestContext(req);
     void logEvent({
       event: "item_create",
