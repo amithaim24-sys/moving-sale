@@ -41,8 +41,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   events: {
-    // Auto-promote allowlisted emails on every sign-in (not just first-time createUser),
-    // so adding an email to BOOTSTRAP_ADMIN_EMAILS works even for existing accounts.
+    // Auto-promote allowlisted emails to OWNER (the main owner / super-admin) on every
+    // sign-in, so adding an email to BOOTSTRAP_ADMIN_EMAILS works even for existing
+    // accounts. Delegated ADMINs are granted from the admin UI, not via this allowlist.
     async signIn({ user }) {
       const allowlist = (process.env.BOOTSTRAP_ADMIN_EMAILS ?? "")
         .split(",")
@@ -50,8 +51,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         .filter(Boolean);
       if (user.id && user.email && allowlist.includes(user.email.toLowerCase())) {
         await prisma.user.updateMany({
-          where: { id: user.id, role: { not: "ADMIN" } },
-          data: { role: "ADMIN" },
+          where: { id: user.id, role: { not: "OWNER" } },
+          data: { role: "OWNER" },
         });
       }
     },

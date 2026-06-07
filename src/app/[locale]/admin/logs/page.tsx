@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { requireAdmin } from "@/lib/guards";
+import { requireOwner } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { TIME_ZONE } from "@/lib/analytics";
 import type { Locale } from "@/i18n/config";
@@ -44,7 +44,7 @@ export default async function AdminLogsPage({
   const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("admin");
-  await requireAdmin();
+  await requireOwner();
 
   const levelFilter = LEVELS.includes(sp.level as (typeof LEVELS)[number]) ? sp.level : undefined;
   const eventFilter = sp.event && sp.event !== "all" ? sp.event : undefined;

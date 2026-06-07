@@ -45,7 +45,9 @@ export default async function StoreCatalogPage({
   if (!store) notFound();
 
   const isOwner = !!user && user.id === store.ownerId;
-  const isAdmin = !!user && user.role === "ADMIN";
+  // Stores are an owner-only platform area — only the platform OWNER (not a delegated
+  // content admin) gets cross-store override here.
+  const isAdmin = !!user && user.role === "OWNER";
   if (!store.active && !isOwner && !isAdmin) notFound();
 
   const basePath = `/${locale}/s/${store.slug}`;

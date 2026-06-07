@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
 import { ensureMembership } from "@/lib/stores";
+import { isPlatformAdmin } from "@/lib/types";
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const blocked = csrfBlock(req);
@@ -24,7 +25,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     where: { id },
     select: { ownerId: true, status: true, storeId: true, owner: { select: { banned: true } } },
   });
-  const isAdmin = session.user.role === "ADMIN";
+  const isAdmin = isPlatformAdmin(session.user.role);
   const isOwner = !!item && item.ownerId === session.user.id;
   const visible =
     !!item &&

@@ -12,6 +12,7 @@ import ItemGallery from "@/components/ItemGallery";
 import ConditionBadge from "@/components/ConditionBadge";
 import { getStoreBySlug } from "@/lib/stores";
 import { getOptionalUser } from "@/lib/guards";
+import { isPlatformAdmin } from "@/lib/types";
 import type { Locale } from "@/i18n/config";
 
 // Cached so generateMetadata and the page share one query.
@@ -59,7 +60,7 @@ export default async function StoreItemPage({
   if (!item || item.storeId !== store.id) notFound();
 
   const isOwner = !!viewer && viewer.id === item.owner.id;
-  const isAdmin = !!viewer && viewer.role === "ADMIN";
+  const isAdmin = isPlatformAdmin(viewer?.role);
   const base = `/${locale}/s/${store.slug}`;
 
   if ((item.status === "HIDDEN" || item.owner.banned) && !isOwner && !isAdmin) redirect(base);

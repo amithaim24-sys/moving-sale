@@ -11,6 +11,7 @@ import SessionProvider from "@/components/SessionProvider";
 import Toaster from "@/components/Toaster";
 import { getOptionalUser } from "@/lib/guards";
 import { getCurrentStore } from "@/lib/stores";
+import { isOwner } from "@/lib/types";
 import VisitTracker from "@/components/VisitTracker";
 import ClientErrorLogger from "@/components/ClientErrorLogger";
 import { Analytics } from "@vercel/analytics/next";
@@ -38,7 +39,7 @@ export default async function LocaleLayout({
   // brand, store nav, no main-site CTA) instead of the main header/footer/bottom-nav.
   const currentStore = await getCurrentStore();
   const isStoreAdmin =
-    !!currentStore && !!user && (user.id === currentStore.ownerId || user.role === "ADMIN");
+    !!currentStore && !!user && (user.id === currentStore.ownerId || isOwner(user.role));
   // Per-request CSP nonce minted in middleware; applied to our one inline script so it
   // runs under the strict (no 'unsafe-inline') script-src policy.
   const nonce = (await headers()).get("x-nonce") ?? undefined;

@@ -12,11 +12,11 @@ export default async function AdminLayout({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await requireAdmin();
+  const user = await requireAdmin();
 
   return (
     <div className="space-y-6">
-      <AdminNav locale={locale} />
+      <AdminNav locale={locale} role={user.role} />
       {children}
     </div>
   );

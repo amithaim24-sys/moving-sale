@@ -5,6 +5,7 @@ import { parseItemPayload } from "@/lib/validate";
 import { destroyImage } from "@/lib/cloudinary";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
 import { canEditOwner } from "@/lib/collab";
+import { isPlatformAdmin } from "@/lib/types";
 import { logEvent, requestContext } from "@/lib/eventLog";
 
 // Load an item the caller is allowed to act on. `isFullEditor` is true for the owner
@@ -32,7 +33,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const limited = rateLimitBlock(`item-edit:${session.user.id}`, 40, 60_000);
   if (limited) return limited;
   const { id } = await ctx.params;
-  const loaded = await loadEditable(id, session.user.id, session.user.role === "ADMIN");
+  const loaded = await loadEditable(id, session.user.id, isPlatformAdmin(session.user.role));
   if (!loaded) return new NextResponse("Not found", { status: 404 });
   const found = loaded.item;
 
@@ -173,7 +174,7 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
   const limited = rateLimitBlock(`item-delete:${session.user.id}`, 40, 60_000);
   if (limited) return limited;
   const { id } = await ctx.params;
-  const loaded = await loadEditable(id, session.user.id, session.user.role === "ADMIN");
+  const loaded = await loadEditable(id, session.user.id, isPlatformAdmin(session.user.role));
   if (!loaded) return new NextResponse("Not found", { status: 404 });
   const found = loaded.item;
 

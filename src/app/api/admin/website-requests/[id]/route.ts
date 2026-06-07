@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { isOwner } from "@/lib/types";
 
 async function requireAdmin(req: Request) {
   const blocked = csrfBlock(req);
   if (blocked) return { error: blocked };
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN" || session.user.banned)
+  if (!session?.user || !isOwner(session.user.role) || session.user.banned)
     return { error: new NextResponse("Forbidden", { status: 403 }) };
   const limited = rateLimitBlock(`admin-website-request:${session.user.id}`, 60, 60_000);
   if (limited) return { error: limited };

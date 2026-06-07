@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "./auth";
 import { prisma } from "./prisma";
+import { isOwner, isPlatformAdmin } from "./types";
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
 
 // Dedupe the session lookup within a single request — layout, header, and the page
@@ -28,9 +29,21 @@ export async function requireUser() {
   return session.user;
 }
 
+// Any platform admin (OWNER or delegated ADMIN). Gates the shared admin sections
+// (dashboard, users, items, analytics).
 export async function requireAdmin() {
   const user = await requireUser();
-  if (user.role !== "ADMIN") {
+  if (!isPlatformAdmin(user.role)) {
+    const locale = await currentLocale();
+    redirect(`/${locale}`);
+  }
+  return user;
+}
+
+// The main owner only. Gates owner-exclusive sections (logs/bugs, stores, requests).
+export async function requireOwner() {
+  const user = await requireUser();
+  if (!isOwner(user.role)) {
     const locale = await currentLocale();
     redirect(`/${locale}`);
   }
@@ -90,8 +103,8 @@ export async function getStoreViewer(storeId: string): Promise<StoreViewer | nul
   });
 
   if (!membership) {
-    if (user.role === "ADMIN") {
-      // Super-admin previews any store without becoming a listed member.
+    if (isOwner(user.role)) {
+      // The platform owner previews any store without becoming a listed member.
       return {
         user,
         membership: { id: "super-admin", role: "ADMIN", banned: false, displayName: null, whatsappPhone: null, city: null },
@@ -107,7 +120,7 @@ export async function getStoreViewer(storeId: string): Promise<StoreViewer | nul
   // Banned from THIS store → treated as logged out for the store.
   if (membership.banned) return null;
 
-  return { user, membership, isStoreAdmin: membership.role === "ADMIN" || user.role === "ADMIN" };
+  return { user, membership, isStoreAdmin: membership.role === "ADMIN" || isOwner(user.role) };
 }
 
 // Require a signed-in store member; otherwise send to the store-aware sign-in.

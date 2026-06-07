@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { getOptionalUser } from "@/lib/guards";
 import { getOwnedStore } from "@/lib/stores";
+import { isPlatformAdmin } from "@/lib/types";
 import LanguageToggle from "./LanguageToggle";
 import DarkModeToggle from "./DarkModeToggle";
 import SignOutButton from "./SignOutButton";
@@ -24,7 +25,7 @@ export default async function Header({ locale }: { locale: Locale }) {
     navItems.push({ href: `/${locale}/my/items/new`, label: t("nav.newItem") });
     navItems.push({ href: `/${locale}/my/likes`, label: t("nav.likes") });
     navItems.push({ href: `/${locale}/my/profile`, label: t("nav.profile") });
-    if (user.role === "ADMIN") {
+    if (isPlatformAdmin(user.role)) {
       navItems.push({ href: `/${locale}/admin`, label: t("nav.admin") });
     }
   }

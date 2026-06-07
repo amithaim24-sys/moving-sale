@@ -12,7 +12,8 @@ export default async function AdminUsersPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("admin");
-  await requireAdmin();
+  const viewer = await requireAdmin();
+  const viewerIsOwner = viewer.role === "OWNER";
 
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
@@ -38,8 +39,9 @@ export default async function AdminUsersPage({
             {users.map((u) => (
               <AdminUserRow
                 key={u.id}
-                user={{ id: u.id, name: u.name, email: u.email, role: u.role as "USER" | "ADMIN", banned: u.banned, itemCount: u._count.items }}
-                labels={{ promote: t("promote"), demote: t("demote"), ban: t("ban"), unban: t("unban") }}
+                viewerIsOwner={viewerIsOwner}
+                user={{ id: u.id, name: u.name, email: u.email, role: u.role as "USER" | "ADMIN" | "OWNER", banned: u.banned, itemCount: u._count.items }}
+                labels={{ promote: t("promote"), demote: t("demote"), ban: t("ban"), unban: t("unban"), owner: t("ownerBadge") }}
               />
             ))}
           </tbody>

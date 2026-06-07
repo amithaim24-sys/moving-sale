@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { requireAdmin } from "@/lib/guards";
+import { requireOwner } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import { absoluteUrl } from "@/lib/url";
 import { TIME_ZONE } from "@/lib/analytics";
@@ -15,7 +15,7 @@ export default async function AdminStoresPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("admin");
-  await requireAdmin();
+  await requireOwner();
 
   const [stores, origin] = await Promise.all([
     prisma.store.findMany({

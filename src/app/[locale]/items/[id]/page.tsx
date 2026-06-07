@@ -11,6 +11,7 @@ import LikeButton from "@/components/LikeButton";
 import ItemGallery from "@/components/ItemGallery";
 import ConditionBadge from "@/components/ConditionBadge";
 import { getOptionalUser } from "@/lib/guards";
+import { isPlatformAdmin } from "@/lib/types";
 import type { Locale } from "@/i18n/config";
 
 // Cached so generateMetadata and the page itself share a single DB query.
@@ -86,7 +87,7 @@ export default async function ItemDetailPage({
   if (!item) notFound();
 
   const isOwner = !!viewer && viewer.id === item.owner.id;
-  const isAdmin = !!viewer && viewer.role === "ADMIN";
+  const isAdmin = isPlatformAdmin(viewer?.role);
 
   // Hidden listings and listings owned by banned users are only visible to admins.
   if ((item.status === "HIDDEN" || item.owner.banned) && !isAdmin) redirect(`/${locale}`);

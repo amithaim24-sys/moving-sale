@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { rateLimitBlock } from "@/lib/security";
 import { logEvent, requestContext } from "@/lib/eventLog";
+import { isPlatformAdmin } from "@/lib/types";
 import { locales, defaultLocale, type Locale } from "@/i18n/config";
 
 // Server-side WhatsApp hand-off. The seller's phone number never reaches the
@@ -84,7 +85,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
 
   // Mirror the detail page's public-visibility rules so this can't become an oracle
   // for DRAFT/HIDDEN/banned-owner listings.
-  const isAdmin = session.user.role === "ADMIN";
+  const isAdmin = isPlatformAdmin(session.user.role);
   const visible =
     !!item &&
     (isAdmin || (!item.owner.banned && item.status !== "HIDDEN" && item.status !== "DRAFT"));

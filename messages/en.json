@@ -220,6 +220,7 @@
     "storesTab": "Stores",
     "requestsTab": "Site requests",
     "role": "Role",
+    "ownerBadge": "Owner",
     "promote": "Make admin",
     "demote": "Remove admin",
     "ban": "Ban",
