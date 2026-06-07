@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type Store = {
@@ -10,6 +11,9 @@ type Store = {
   tagline: string | null;
   active: boolean;
   itemCount: number;
+  visits: number;
+  views: number;
+  clicks: number;
   ownerName: string | null;
   ownerEmail: string;
   createdLabel: string;
@@ -35,6 +39,10 @@ export default function StoreRow({
     confirmDelete: string;
     items: string;
     actionFailed: string;
+    analytics: string;
+    statVisits: string;
+    statViews: string;
+    statClicks: string;
   };
 }) {
   const router = useRouter();
@@ -117,9 +125,34 @@ export default function StoreRow({
           >
             /{locale}/s/{store.slug}
           </a>
+
+          {/* At-a-glance traffic so the list reads as a per-website comparison. */}
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+            <span>
+              {labels.statVisits}{" "}
+              <span className="font-semibold tabular-nums text-slate-700 dark:text-slate-200">
+                {store.visits.toLocaleString(locale)}
+              </span>
+            </span>
+            <span>
+              {labels.statViews}{" "}
+              <span className="font-semibold tabular-nums text-slate-700 dark:text-slate-200">
+                {store.views.toLocaleString(locale)}
+              </span>
+            </span>
+            <span>
+              {labels.statClicks}{" "}
+              <span className="font-semibold tabular-nums text-slate-700 dark:text-slate-200">
+                {store.clicks.toLocaleString(locale)}
+              </span>
+            </span>
+          </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <div className="flex flex-wrap justify-end gap-2">
+            <Link href={`/${locale}/admin/stores/${store.id}`} className="btn-primary text-xs">
+              {labels.analytics}
+            </Link>
             <a
               href={`/${locale}/s/${store.slug}`}
               target="_blank"

@@ -377,7 +377,21 @@
       "delete": "מחק",
       "confirmDelete": "למחוק את החנות הזו? הפריטים שלה יחזרו לקטלוג הראשי; שום דבר לא יימחק.",
       "itemsCount": "{count} פריטים",
-      "actionFailed": "הפעולה נכשלה"
+      "actionFailed": "הפעולה נכשלה",
+      "analytics": "אנליטיקה",
+      "statVisits": "כניסות",
+      "statViews": "צפיות",
+      "statClicks": "קליקים"
+    },
+    "storeAnalytics": {
+      "title": "{name}",
+      "subtitle": "אנליטיקה לכל אתר — תנועה, מעורבות והכנסות עבור אתר זה בלבד.",
+      "back": "← כל האתרים",
+      "openStore": "פתח את האתר",
+      "ownerLabel": "בעלים",
+      "members": "חברים",
+      "itemsTitle": "פריטים מובילים",
+      "noItems": "אין עדיין פריטים באתר הזה."
     }
   },
   "duplicate": {

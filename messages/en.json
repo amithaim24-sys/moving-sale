@@ -377,7 +377,21 @@
       "delete": "Delete",
       "confirmDelete": "Delete this store? Its items return to the main catalog; nothing is deleted.",
       "itemsCount": "{count} items",
-      "actionFailed": "Action failed"
+      "actionFailed": "Action failed",
+      "analytics": "Analytics",
+      "statVisits": "Visits",
+      "statViews": "Views",
+      "statClicks": "Clicks"
+    },
+    "storeAnalytics": {
+      "title": "{name}",
+      "subtitle": "Per-website analytics — traffic, engagement and revenue for this site only.",
+      "back": "← All websites",
+      "openStore": "Open website",
+      "ownerLabel": "Owner",
+      "members": "Members",
+      "itemsTitle": "Top items",
+      "noItems": "No items in this website yet."
     }
   },
   "duplicate": {

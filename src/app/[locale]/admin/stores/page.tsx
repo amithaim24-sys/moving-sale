@@ -17,7 +17,7 @@ export default async function AdminStoresPage({
   const t = await getTranslations("admin");
   await requireOwner();
 
-  const [stores, origin] = await Promise.all([
+  const [stores, itemAgg, visitAgg, origin] = await Promise.all([
     prisma.store.findMany({
       orderBy: { createdAt: "desc" },
       select: {
@@ -31,8 +31,27 @@ export default async function AdminStoresPage({
         _count: { select: { items: true } },
       },
     }),
+    // Per-store engagement totals in one pass: views/clicks summed from the item
+    // counters, grouped by store. (A null storeId group = the root catalog; ignored.)
+    prisma.item.groupBy({ by: ["storeId"], _sum: { viewCount: true, clickCount: true } }),
+    // Per-store traffic: visit rows carry their own storeId.
+    prisma.visit.groupBy({ by: ["storeId"], _count: { _all: true } }),
     absoluteUrl(""),
   ]);
+
+  // Index the aggregates by storeId so each row can read its own numbers.
+  const viewsByStore = new Map<string, number>();
+  const clicksByStore = new Map<string, number>();
+  for (const r of itemAgg) {
+    if (!r.storeId) continue;
+    viewsByStore.set(r.storeId, r._sum.viewCount ?? 0);
+    clicksByStore.set(r.storeId, r._sum.clickCount ?? 0);
+  }
+  const visitsByStore = new Map<string, number>();
+  for (const r of visitAgg) {
+    if (!r.storeId) continue;
+    visitsByStore.set(r.storeId, r._count._all);
+  }
 
   const dtf = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeZone: TIME_ZONE });
 
@@ -48,6 +67,10 @@ export default async function AdminStoresPage({
     confirmDelete: t("stores.confirmDelete"),
     items: t("stores.itemsCount"),
     actionFailed: t("stores.actionFailed"),
+    analytics: t("stores.analytics"),
+    statVisits: t("stores.statVisits"),
+    statViews: t("stores.statViews"),
+    statClicks: t("stores.statClicks"),
   };
 
   return (
@@ -74,6 +97,9 @@ export default async function AdminStoresPage({
                 tagline: s.tagline,
                 active: s.active,
                 itemCount: s._count.items,
+                visits: visitsByStore.get(s.id) ?? 0,
+                views: viewsByStore.get(s.id) ?? 0,
+                clicks: clicksByStore.get(s.id) ?? 0,
                 ownerName: s.owner.name,
                 ownerEmail: s.owner.email,
                 createdLabel: dtf.format(s.createdAt),
