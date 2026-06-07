@@ -7,7 +7,7 @@ import { getStoreBySlug } from "@/lib/stores";
 import { requireStoreAdmin } from "@/lib/guards";
 import { absoluteUrl } from "@/lib/url";
 import { TIME_ZONE } from "@/lib/analytics";
-import StoreShareBar from "@/components/StoreShareBar";
+import StoreShareButton from "@/components/StoreShareButton";
 import PriceOrFreeBadge from "@/components/PriceOrFreeBadge";
 import type { Locale } from "@/i18n/config";
 
@@ -90,12 +90,13 @@ export default async function StoreAdminPage({
           <h1 className="text-2xl font-bold">{t("storeAdmin.title", { name: store.name })}</h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">{t("storeAdmin.intro")}</p>
         </div>
-        <Link href={`/${locale}/my/items/new`} className="btn-primary text-sm">
-          + {t("nav.newItem")}
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href={`/${locale}/my/items/new`} className="btn-primary text-sm">
+            + {t("nav.newItem")}
+          </Link>
+          <StoreShareButton url={storeUrl} />
+        </div>
       </div>
-
-      <StoreShareBar url={storeUrl} />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

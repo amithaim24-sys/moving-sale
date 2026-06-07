@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CatalogView from "@/components/CatalogView";
 import CatalogSkeleton from "@/components/CatalogSkeleton";
-import StoreShareBar from "@/components/StoreShareBar";
+import StoreShareButton from "@/components/StoreShareButton";
 import { getStoreBySlug } from "@/lib/stores";
 import { getOptionalUser } from "@/lib/guards";
 import { absoluteUrl } from "@/lib/url";
@@ -72,18 +72,14 @@ export default async function StoreCatalogPage({
       </div>
 
       {(isOwner || isAdmin) && (
-        <div className="space-y-2">
-          <StoreShareBar url={publicUrl} />
-          {(isOwner || isAdmin) && (
-            <div className="flex flex-wrap gap-2">
-              <Link href={`/${locale}/my/items/new`} className="btn-primary text-sm">
-                + {t("nav.newItem")}
-              </Link>
-              <Link href={`/${locale}/s/${store.slug}/admin`} className="btn-secondary text-sm">
-                {t("store.manageItems")}
-              </Link>
-            </div>
-          )}
+        <div className="flex flex-wrap gap-2">
+          <Link href={`/${locale}/my/items/new`} className="btn-primary text-sm">
+            + {t("nav.newItem")}
+          </Link>
+          <Link href={`/${locale}/s/${store.slug}/admin`} className="btn-secondary text-sm">
+            {t("store.manageItems")}
+          </Link>
+          <StoreShareButton url={publicUrl} />
         </div>
       )}
 
