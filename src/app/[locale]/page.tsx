@@ -1,6 +1,7 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CatalogView from "@/components/CatalogView";
+import CatalogSkeleton from "@/components/CatalogSkeleton";
 import DuplicateSiteCTA from "@/components/DuplicateSiteCTA";
 import { getOptionalUser } from "@/lib/guards";
 import type { Locale } from "@/i18n/config";
@@ -31,14 +32,21 @@ export default async function CatalogPage({
         </div>
       </div>
 
-      <CatalogView
-        locale={locale}
-        storeId={null}
-        basePath={`/${locale}`}
-        searchParams={sp}
-        viewer={user}
-        newItemHref={user ? `/${locale}/my/items/new` : undefined}
-      />
+      <Suspense
+        // Re-key on the active filters so switching type/category/search shows
+        // the skeleton again while the new results stream in.
+        key={`${sp.type ?? ""}-${sp.category ?? ""}-${sp.q ?? ""}`}
+        fallback={<CatalogSkeleton />}
+      >
+        <CatalogView
+          locale={locale}
+          storeId={null}
+          basePath={`/${locale}`}
+          searchParams={sp}
+          viewer={user}
+          newItemHref={user ? `/${locale}/my/items/new` : undefined}
+        />
+      </Suspense>
 
       <DuplicateSiteCTA defaultName={user?.name} defaultEmail={user?.email} />
     </div>

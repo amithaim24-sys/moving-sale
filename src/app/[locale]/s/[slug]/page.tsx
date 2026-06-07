@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CatalogView from "@/components/CatalogView";
+import CatalogSkeleton from "@/components/CatalogSkeleton";
 import StoreShareBar from "@/components/StoreShareBar";
 import { getStoreBySlug } from "@/lib/stores";
 import { getOptionalUser } from "@/lib/guards";
@@ -85,14 +87,19 @@ export default async function StoreCatalogPage({
         </div>
       )}
 
-      <CatalogView
-        locale={locale}
-        storeId={store.id}
-        basePath={basePath}
-        searchParams={sp}
-        viewer={user}
-        newItemHref={isOwner ? `/${locale}/my/items/new` : undefined}
-      />
+      <Suspense
+        key={`${sp.type ?? ""}-${sp.category ?? ""}-${sp.q ?? ""}`}
+        fallback={<CatalogSkeleton />}
+      >
+        <CatalogView
+          locale={locale}
+          storeId={store.id}
+          basePath={basePath}
+          searchParams={sp}
+          viewer={user}
+          newItemHref={isOwner ? `/${locale}/my/items/new` : undefined}
+        />
+      </Suspense>
     </div>
   );
 }
