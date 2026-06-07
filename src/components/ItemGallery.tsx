@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import Lightbox from "./Lightbox";
+import dynamic from "next/dynamic";
+
+// The fullscreen Lightbox is only needed once a shopper taps a photo, so load
+// its code on demand instead of shipping it in the item page's initial bundle.
+const Lightbox = dynamic(() => import("./Lightbox"), { ssr: false });
 
 export type GalleryImage = { id: string; url: string };
 

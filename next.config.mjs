@@ -4,6 +4,13 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Drop the "X-Powered-By: Next.js" header — it leaks the stack for no benefit.
+  poweredByHeader: false,
+  // Tree-shake heavy barrel-export packages so only the symbols we actually use
+  // are bundled, trimming client JS.
+  experimental: {
+    optimizePackageImports: ["next-intl", "@vercel/analytics", "@vercel/speed-insights"],
+  },
   images: {
     // Serve modern formats first — AVIF/WebP are dramatically smaller than the
     // original JPEG/PNG coming from Cloudinary, and next/image negotiates per
