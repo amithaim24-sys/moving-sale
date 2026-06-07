@@ -441,6 +441,7 @@
   },
   "a11y": {
     "skipToContent": "Skip to content",
+    "loading": "Loading",
     "closeDialog": "Close",
     "previousImage": "Previous image",
     "nextImage": "Next image",
