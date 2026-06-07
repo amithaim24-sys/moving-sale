@@ -26,6 +26,10 @@ export default async function AdminItemsPage({
       viewCount: true,
       images: { take: 1, orderBy: { sortOrder: "asc" }, select: { url: true } },
       owner: { select: { email: true, name: true } },
+      // Which white-label store this item lives in. `null` = the original root
+      // catalog (the main site). Surfaced as a badge so admins can tell at a
+      // glance which store each listing belongs to.
+      store: { select: { name: true, slug: true } },
     },
     orderBy: { createdAt: "desc" },
     take: 200,
@@ -43,9 +47,24 @@ export default async function AdminItemsPage({
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <Link href={`/${locale}/items/${item.id}`} className="truncate font-medium hover:underline">
-                {item.title}
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link href={`/${locale}/items/${item.id}`} className="truncate font-medium hover:underline">
+                  {item.title}
+                </Link>
+                {item.store ? (
+                  <Link
+                    href={`/${locale}/s/${item.store.slug}`}
+                    className="shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300"
+                    title={t("admin.itemStore", { store: item.store.name })}
+                  >
+                    🏬 {item.store.name}
+                  </Link>
+                ) : (
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    {t("admin.overview.mainSite")}
+                  </span>
+                )}
+              </div>
               <div className="text-xs text-slate-500">
                 {item.owner.email} · {t(`item.status.${item.status as "AVAILABLE"}`)}
                 {" · "}👁 {t("item.viewsCount", { count: item.viewCount })}

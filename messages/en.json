@@ -227,6 +227,7 @@
     "unban": "Unban",
     "hide": "Hide",
     "show": "Show",
+    "itemStore": "In store: {store}",
     "overview": {
       "title": "Websites",
       "subtitle": "Each website's analytics, kept separate. Open one to see its full report.",
