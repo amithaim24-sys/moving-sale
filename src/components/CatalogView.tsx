@@ -230,7 +230,7 @@ export default async function CatalogView({
           })}
         </div>
         {categoryChips.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-wrap gap-2 pb-1">
             {[{ key: "", label: t("filter.all") }, ...categoryChips.map((c) => ({ key: c, label: t(`item.category.${c}`) }))].map(
               (opt) => {
                 const active = (category ?? "") === opt.key;
