@@ -200,6 +200,16 @@
     "yourStoreInactive": "Your store is not live yet. Ask the admin to activate it.",
     "viewStore": "View store"
   },
+  "storeAdmin": {
+    "title": "{name} · Dashboard",
+    "intro": "Your store's own dashboard — only this store's items, users and numbers.",
+    "members": "Members",
+    "itemsTitle": "Items",
+    "membersTitle": "Members (your store's users)",
+    "noMembers": "No members yet.",
+    "bannedTag": "blocked",
+    "roleAdmin": "Admin"
+  },
   "admin": {
     "dashboard": "Dashboard",
     "users": "Users",

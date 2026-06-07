@@ -197,6 +197,7 @@ export default async function CatalogView({
             <ItemCard
               key={item.id}
               locale={locale}
+              basePath={basePath}
               liked={likedIds.has(item.id)}
               isLoggedIn={!!viewer}
               item={{

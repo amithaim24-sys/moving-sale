@@ -70,12 +70,12 @@ export default async function StoreCatalogPage({
       {(isOwner || isAdmin) && (
         <div className="space-y-2">
           <StoreShareBar url={publicUrl} />
-          {isOwner && (
+          {(isOwner || isAdmin) && (
             <div className="flex flex-wrap gap-2">
               <Link href={`/${locale}/my/items/new`} className="btn-primary text-sm">
                 + {t("nav.newItem")}
               </Link>
-              <Link href={`/${locale}/my/items`} className="btn-secondary text-sm">
+              <Link href={`/${locale}/s/${store.slug}/admin`} className="btn-secondary text-sm">
                 {t("store.manageItems")}
               </Link>
             </div>

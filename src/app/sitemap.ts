@@ -13,7 +13,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const items = await prisma.item
     .findMany({
-      where: { status: "AVAILABLE" },
+      // Main sitemap = main-site catalog only. White-label store items (storeId set)
+      // are private/share-by-link and stay out of it.
+      where: { status: "AVAILABLE", storeId: null },
       select: { id: true, updatedAt: true },
       orderBy: { createdAt: "desc" },
       take: 1000,

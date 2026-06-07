@@ -25,15 +25,19 @@ export default function ItemCard({
   locale,
   liked,
   isLoggedIn,
+  basePath,
 }: {
   item: ItemCardData;
   locale: string;
   liked: boolean;
   isLoggedIn: boolean;
+  // Path the item links live under. Defaults to the main site; a store catalog
+  // passes `/<locale>/s/<slug>` so item detail stays inside the store.
+  basePath?: string;
 }) {
   const t = useTranslations("item");
   const cover = item.images[0]?.url;
-  const itemPath = `/${locale}/items/${item.id}`;
+  const itemPath = `${basePath ?? `/${locale}`}/items/${item.id}`;
   const showGiveBadge = item.type === "SELL" && item.giveIfUnsold;
   // Only NEW gets flagged in the catalog — it's the headline state buyers scan for.
   const showNewBadge = item.condition === "NEW";

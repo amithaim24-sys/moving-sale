@@ -39,6 +39,9 @@ model User {
   // The white-label store this user owns and self-manages, if any. A user owns at
   // most one store; null means they're a regular contributor to the root catalog.
   store Store?
+  // Per-store memberships: the same Google identity is a distinct "member" in each
+  // store (own role, profile, ban-state). Powers separate-users-per-store.
+  storeMemberships StoreMembership[]
 }
 
 // A white-label marketplace carved out of the same app + database. The super-admin
@@ -62,7 +65,37 @@ model Store {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  items Item[]
+  items       Item[]
+  memberships StoreMembership[]
+}
+
+// A person's identity WITHIN one store. The same User (one Google account) gets a
+// separate membership per store, so each store has its own user list, its own roles
+// (store ADMIN/owner vs MEMBER), its own per-store profile, and its own ban-state —
+// independent of the main site and of other stores. Created lazily the first time a
+// signed-in user acts in a store; the store owner's membership (role ADMIN) is
+// created when the store is created.
+model StoreMembership {
+  id            String   @id @default(cuid())
+  storeId       String
+  userId        String
+  // "MEMBER" | "ADMIN" (store owner/admin — manages this store only).
+  role          String   @default("MEMBER")
+  // Per-store profile overrides. When null, fall back to the global User fields.
+  displayName   String?
+  whatsappPhone String?
+  city          String?
+  // Per-store ban: a store admin can block someone from their store without
+  // affecting the main site or other stores.
+  banned        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, userId])
+  @@index([storeId, createdAt])
+  @@index([userId])
 }
 
 // Account-level edit sharing: the owner grants a collaborator edit access to ALL
@@ -268,11 +301,15 @@ model Visit {
   id        String   @id @default(cuid())
   visitorId String
   userId    String?
+  // Which store this visit belongs to (null = main site). Lets a store's admin
+  // dashboard count its own traffic.
+  storeId   String?
   path      String
   createdAt DateTime @default(now())
 
   @@index([createdAt])
   @@index([visitorId, createdAt])
+  @@index([storeId, createdAt])
 }
 
 // Append-only structured application event log for debugging real user issues

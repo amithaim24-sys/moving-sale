@@ -45,6 +45,10 @@ export default function middleware(req: NextRequest) {
   // (via next/headers) and apply it to inline scripts. next-intl preserves incoming
   // request headers when it rewrites, so mutating req.headers here is sufficient.
   req.headers.set("x-nonce", nonce);
+  // Expose the request path to Server Components (next-intl preserves incoming request
+  // headers across its rewrite, same as x-nonce above). Used to detect store routes
+  // (/<locale>/s/<slug>) so the layout can render store-scoped branding.
+  req.headers.set("x-pathname", req.nextUrl.pathname);
   // Next.js reads the nonce from the request's CSP header to auto-tag its own inline
   // bootstrap/streaming (RSC) scripts; without this they'd be blocked in production
   // (no 'unsafe-inline', and 'strict-dynamic' doesn't cover un-nonced inline scripts).

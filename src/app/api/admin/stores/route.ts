@@ -78,6 +78,10 @@ export async function POST(req: Request) {
         data: { name, slug, tagline, ownerId },
         select: { id: true, slug: true },
       });
+      // The owner is the store's admin member.
+      await tx.storeMembership.create({
+        data: { storeId: created.id, userId: ownerId, role: "ADMIN" },
+      });
       // Move the owner's existing listings into their new store (none yet for a
       // freshly provisioned placeholder owner).
       await tx.item.updateMany({ where: { ownerId }, data: { storeId: created.id } });

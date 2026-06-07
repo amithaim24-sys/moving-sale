@@ -5,9 +5,12 @@ import { headers } from "next/headers";
 import { locales, dirOf, type Locale } from "@/i18n/config";
 import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
+import StoreHeader from "@/components/StoreHeader";
+import StoreBottomNav from "@/components/StoreBottomNav";
 import SessionProvider from "@/components/SessionProvider";
 import Toaster from "@/components/Toaster";
 import { getOptionalUser } from "@/lib/guards";
+import { getCurrentStore } from "@/lib/stores";
 import VisitTracker from "@/components/VisitTracker";
 import ClientErrorLogger from "@/components/ClientErrorLogger";
 import { Analytics } from "@vercel/analytics/next";
@@ -31,6 +34,11 @@ export default async function LocaleLayout({
   const t = await getTranslations("a11y");
   const tApp = await getTranslations("app");
   const user = await getOptionalUser();
+  // On a store route (/<locale>/s/<slug>), render store-scoped chrome (store name as
+  // brand, store nav, no main-site CTA) instead of the main header/footer/bottom-nav.
+  const currentStore = await getCurrentStore();
+  const isStoreAdmin =
+    !!currentStore && !!user && (user.id === currentStore.ownerId || user.role === "ADMIN");
   // Per-request CSP nonce minted in middleware; applied to our one inline script so it
   // runs under the strict (no 'unsafe-inline') script-src policy.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
@@ -57,23 +65,47 @@ export default async function LocaleLayout({
         <SessionProvider>
           <NextIntlClientProvider messages={messages} locale={locale}>
             <Toaster>
-              <Header locale={locale as Locale} />
-              <main id="main-content" className="mx-auto max-w-6xl px-3 py-6 sm:px-4">{children}</main>
-              <footer className="mx-auto max-w-6xl px-3 pb-28 pt-2 text-center text-xs text-slate-400 sm:px-4 dark:text-slate-500 md:pb-8">
-                {tApp.rich("builtBy", {
-                  link: (chunks) => (
-                    <a
-                      href="https://www.linkedin.com/in/or-caf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-brand underline-offset-2 hover:underline"
-                    >
-                      {chunks}
-                    </a>
-                  ),
-                })}
-              </footer>
-              <BottomNav locale={locale} isLoggedIn={!!user} />
+              {currentStore ? (
+                <>
+                  <StoreHeader
+                    locale={locale as Locale}
+                    slug={currentStore.slug}
+                    storeName={currentStore.name}
+                    isSignedIn={!!user}
+                    isStoreAdmin={isStoreAdmin}
+                  />
+                  <main id="main-content" className="mx-auto max-w-6xl px-3 py-6 sm:px-4">{children}</main>
+                  <footer className="mx-auto max-w-6xl px-3 pb-28 pt-2 text-center text-xs text-slate-400 sm:px-4 dark:text-slate-500 md:pb-8">
+                    {currentStore.name}
+                  </footer>
+                  <StoreBottomNav
+                    locale={locale}
+                    slug={currentStore.slug}
+                    isSignedIn={!!user}
+                    isStoreAdmin={isStoreAdmin}
+                  />
+                </>
+              ) : (
+                <>
+                  <Header locale={locale as Locale} />
+                  <main id="main-content" className="mx-auto max-w-6xl px-3 py-6 sm:px-4">{children}</main>
+                  <footer className="mx-auto max-w-6xl px-3 pb-28 pt-2 text-center text-xs text-slate-400 sm:px-4 dark:text-slate-500 md:pb-8">
+                    {tApp.rich("builtBy", {
+                      link: (chunks) => (
+                        <a
+                          href="https://www.linkedin.com/in/or-caf"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-brand underline-offset-2 hover:underline"
+                        >
+                          {chunks}
+                        </a>
+                      ),
+                    })}
+                  </footer>
+                  <BottomNav locale={locale} isLoggedIn={!!user} />
+                </>
+              )}
             </Toaster>
           </NextIntlClientProvider>
         </SessionProvider>
