@@ -227,6 +227,13 @@
     "unban": "Unban",
     "hide": "Hide",
     "show": "Show",
+    "overview": {
+      "title": "Websites",
+      "subtitle": "Each website's analytics, kept separate. Open one to see its full report.",
+      "mainSite": "Main site",
+      "mainSiteSubtitle": "Analytics for the original marketplace only.",
+      "viewAnalytics": "View analytics"
+    },
     "metrics": {
       "title": "Site overview",
       "sectionUsers": "Users",
