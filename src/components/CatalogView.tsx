@@ -193,13 +193,16 @@ export default async function CatalogView({
         )
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <ItemCard
               key={item.id}
               locale={locale}
               basePath={basePath}
               liked={likedIds.has(item.id)}
               isLoggedIn={!!viewer}
+              // Prioritize the first row (up to 4 columns on desktop) so the
+              // catalog's largest visible image isn't lazy-loaded.
+              priority={index < 4}
               item={{
                 id: item.id,
                 title: item.title,

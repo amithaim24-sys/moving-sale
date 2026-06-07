@@ -26,6 +26,7 @@ export default function ItemCard({
   liked,
   isLoggedIn,
   basePath,
+  priority = false,
 }: {
   item: ItemCardData;
   locale: string;
@@ -34,6 +35,10 @@ export default function ItemCard({
   // Path the item links live under. Defaults to the main site; a store catalog
   // passes `/<locale>/s/<slug>` so item detail stays inside the store.
   basePath?: string;
+  // Eagerly load + prioritize the cover image for the first row of cards so the
+  // catalog LCP isn't gated behind lazy-loading. Set by the grid for the items
+  // most likely above the fold.
+  priority?: boolean;
 }) {
   const t = useTranslations("item");
   const cover = item.images[0]?.url;
@@ -66,6 +71,7 @@ export default function ItemCard({
               fill
               sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw"
               className="object-cover transition group-hover:scale-[1.02]"
+              priority={priority}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-slate-400">—</div>

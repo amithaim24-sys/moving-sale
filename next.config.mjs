@@ -5,6 +5,13 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // Serve modern formats first — AVIF/WebP are dramatically smaller than the
+    // original JPEG/PNG coming from Cloudinary, and next/image negotiates per
+    // browser. Cloudinary asset URLs are content-addressed and immutable, so we
+    // let Vercel cache each optimized variant for a long time (31 days) instead
+    // of re-optimizing on every request.
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2678400,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
