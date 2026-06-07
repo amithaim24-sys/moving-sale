@@ -15,6 +15,7 @@ import { isOwner } from "@/lib/types";
 import VisitTracker from "@/components/VisitTracker";
 import ClientErrorLogger from "@/components/ClientErrorLogger";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -111,6 +112,7 @@ export default async function LocaleLayout({
           </NextIntlClientProvider>
         </SessionProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
