@@ -3,8 +3,15 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Runtime queries go through the Neon connection pooler (-pooler host).
+  url       = env("DATABASE_URL")
+  // Migrations use a DIRECT (non-pooler) connection. Prisma's `migrate deploy`
+  // takes a session-level advisory lock, which is unreliable through PgBouncer
+  // and caused recurring P1002 advisory-lock timeouts. directUrl routes migrate
+  // around the pooler. DIRECT_URL must be set in every environment (local +
+  // Vercel) — same DB as DATABASE_URL but without the `-pooler` host.
+  directUrl = env("DIRECT_URL")
 }
 
 // Role: "USER" | "ADMIN"
