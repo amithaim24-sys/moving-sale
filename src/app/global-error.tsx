@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { logClientEvent } from "@/lib/clientLog";
+import { maybeReloadForChunkError } from "@/lib/chunkReload";
 
 // Last-resort boundary: replaces the root layout, so it ships its own <html>
 // and inline styles (no Tailwind / i18n provider available here).
@@ -13,6 +14,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
+    if (maybeReloadForChunkError(error)) return;
     // A root crash is the most severe case — make sure it's recorded.
     logClientEvent({
       event: "client_error",

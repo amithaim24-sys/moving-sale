@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { logClientEvent } from "@/lib/clientLog";
+import { maybeReloadForChunkError } from "@/lib/chunkReload";
 
 export default function LocaleError({
   error,
@@ -14,6 +15,9 @@ export default function LocaleError({
   const t = useTranslations("error");
 
   useEffect(() => {
+    // A stale-deploy chunk failure can surface here too — reload to recover
+    // before showing the error screen.
+    if (maybeReloadForChunkError(error)) return;
     console.error(error);
     // Report the boundary hit so a user landing on the error screen leaves a trace.
     logClientEvent({

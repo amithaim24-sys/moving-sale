@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { logClientEvent } from "@/lib/clientLog";
+import { maybeReloadForChunkError } from "@/lib/chunkReload";
 
 // Mounted once in the locale layout, so it covers every page. Captures the two
 // classes of client-side failure the server can never see on its own:
@@ -16,6 +17,8 @@ export default function ClientErrorLogger() {
     const MAX = 15;
 
     const onError = (e: ErrorEvent) => {
+      // Stale-deploy chunk failure: reload once to fetch the new manifest.
+      if (maybeReloadForChunkError(e.error ?? e.message)) return;
       if (sent++ >= MAX) return;
       logClientEvent({
         event: "client_error",
@@ -32,6 +35,7 @@ export default function ClientErrorLogger() {
     };
 
     const onRejection = (e: PromiseRejectionEvent) => {
+      if (maybeReloadForChunkError(e.reason)) return;
       if (sent++ >= MAX) return;
       const reason = e.reason as { message?: string; stack?: string } | undefined;
       logClientEvent({
