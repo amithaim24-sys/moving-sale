@@ -109,10 +109,10 @@ export default async function ItemDetailPage({
           prisma.item
             .update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } })
             .catch(() => {}),
-          // Attributable view log — only for signed-in viewers (admin analytics).
-          viewer
-            ? prisma.itemView.create({ data: { itemId: item.id, userId: viewer.id } }).catch(() => {})
-            : Promise.resolve(),
+          // Timestamped view event for the analytics trend — recorded for EVERY view.
+          // userId is null for anonymous visitors; the "who viewed what" admin log
+          // filters those out, but the views-over-time chart counts them all.
+          prisma.itemView.create({ data: { itemId: item.id, userId: viewer?.id ?? null } }).catch(() => {}),
         ])
       : Promise.resolve(),
     viewer

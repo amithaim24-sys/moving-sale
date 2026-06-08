@@ -72,9 +72,9 @@ export default async function StoreItemPage({
     shouldCountView
       ? Promise.all([
           prisma.item.update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } }).catch(() => {}),
-          viewer
-            ? prisma.itemView.create({ data: { itemId: item.id, userId: viewer.id } }).catch(() => {})
-            : Promise.resolve(),
+          // Timestamped view event for the analytics trend — recorded for EVERY view
+          // (userId null = anonymous). The "who viewed what" admin log filters nulls out.
+          prisma.itemView.create({ data: { itemId: item.id, userId: viewer?.id ?? null } }).catch(() => {}),
         ])
       : Promise.resolve(),
     viewer

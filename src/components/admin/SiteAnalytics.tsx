@@ -54,7 +54,7 @@ export default async function SiteAnalytics({
     prisma.item.groupBy({ by: ["type"], where: itemWhere, _count: { _all: true } }),
     prisma.item.count({ where: { ...itemWhere, previousPriceIls: { not: null } } }),
     prisma.item.aggregate({ where: itemWhere, _sum: { viewCount: true }, _count: { _all: true } }),
-    prisma.itemView.count({ where: viaItem }),
+    prisma.itemView.count({ where: { ...viaItem, userId: { not: null } } }),
     prisma.itemLike.count({ where: viaItem }),
     prisma.giveIfUnsoldSignup.count({ where: viaItem }),
     storeId ? prisma.storeMembership.count({ where: { storeId } }) : Promise.resolve<number | null>(null),
