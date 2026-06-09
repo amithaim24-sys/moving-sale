@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { csrfBlock, rateLimitBlock, clientIp } from "@/lib/security";
+import { csrfBlock, rateLimitBlockDurable, clientIp } from "@/lib/security";
 import { logEvent, requestContext } from "@/lib/eventLog";
 
 // Matches the email shape we accept elsewhere (a local part, an @, and a dotted
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
 
   const ip = clientIp(req);
-  const limited = rateLimitBlock(`website-request:${ip}`, 5, 60_000);
+  const limited = await rateLimitBlockDurable(`website-request:${ip}`, 5, 60_000);
   if (limited) return limited;
 
   let body: { name?: unknown; email?: unknown; phone?: unknown; message?: unknown };

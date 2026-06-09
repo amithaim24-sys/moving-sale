@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { rateLimitBlock } from "@/lib/security";
+import { rateLimitBlockDurable } from "@/lib/security";
 import { logEvent, requestContext } from "@/lib/eventLog";
 import { isPlatformAdmin } from "@/lib/types";
 import { locales, defaultLocale, type Locale } from "@/i18n/config";
@@ -57,7 +57,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
 
   // A single logged-in account could otherwise loop this endpoint across many ids to
   // harvest every seller's number. Cap the lookup rate per viewer.
-  const limited = rateLimitBlock(`contact:${session.user.id}`, 40, 60_000);
+  const limited = await rateLimitBlockDurable(`contact:${session.user.id}`, 40, 60_000);
   if (limited) {
     await log("rate_limited", "WARN", session.user.id);
     return limited;

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { rateLimitBlock, clientIp, isSameOrigin } from "@/lib/security";
+import { rateLimitBlockDurable, clientIp, isSameOrigin } from "@/lib/security";
 import { storeSlugFromPath } from "@/lib/stores";
 
 // Beacon endpoint — receives a fire-and-forget POST from VisitTracker on every
@@ -18,8 +18,8 @@ export async function POST(req: Request) {
   // The vid bucket throttles a normal visitor; the IP bucket (looser, to tolerate
   // shared NATs) catches a client that rotates the cookie to dodge the vid bucket.
   const limited =
-    rateLimitBlock(`visit:${vid ?? "anon"}`, 30, 60_000) ||
-    rateLimitBlock(`visit-ip:${clientIp(req)}`, 120, 60_000);
+    (await rateLimitBlockDurable(`visit:${vid ?? "anon"}`, 30, 60_000)) ||
+    (await rateLimitBlockDurable(`visit-ip:${clientIp(req)}`, 120, 60_000));
   if (limited) return limited;
 
   const session = await auth();

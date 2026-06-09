@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { rateLimit, isSameOrigin } from "@/lib/security";
+import { rateLimitDurable, isSameOrigin } from "@/lib/security";
 import { logEvent, requestContext, type LogLevel } from "@/lib/eventLog";
 
 // Ingest endpoint for client-side telemetry (button clicks, JS errors, popup
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
 
   // Cheap abuse guard keyed on best-effort IP. We deliberately return 204 (not
   // 429) so a misbehaving client never retries in a loop on our telemetry path.
-  if (!rateLimit(`clientlog:${reqCtx.ip ?? "unknown"}`, 60, 60_000)) {
+  if (!(await rateLimitDurable(`clientlog:${reqCtx.ip ?? "unknown"}`, 60, 60_000))) {
     return new NextResponse(null, { status: 204 });
   }
 
