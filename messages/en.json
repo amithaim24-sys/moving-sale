@@ -447,6 +447,7 @@
     "nextImage": "Next image",
     "imageCounter": "Image {current} of {total}",
     "showPhoto": "Show photo {n}",
+    "openPhotoViewer": "Open photo viewer",
     "rotateLeft": "Rotate left",
     "rotateRight": "Rotate right",
     "aspectRatio": "Aspect ratio {ratio}",

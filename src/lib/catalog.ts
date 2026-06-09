@@ -1,6 +1,15 @@
-import { unstable_cache } from "next/cache";
+import { unstable_cache, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { ItemCategory } from "@/lib/types";
+
+// Single place every item-mutating route calls to bust the cached catalog. The
+// global "catalog" tag covers cross-store views; the per-store tag scopes a
+// store's own feed. Centralized so a new mutation path can't silently forget to
+// invalidate and leave sold/deleted/edited items lingering for up to 60s.
+export function revalidateCatalog(storeId: string | null | undefined) {
+  revalidateTag("catalog");
+  revalidateTag(`catalog:${storeId ?? "root"}`);
+}
 
 // How many items a single catalog page/batch contains. The catalog uses
 // offset pagination (infinite scroll appends one page at a time).

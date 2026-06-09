@@ -25,6 +25,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // sign-in links to it instead of erroring with OAuthAccountNotLinked. Safe
       // here because Google is the only provider and it returns verified emails.
       allowDangerousEmailAccountLinking: true,
+      // Normalize the email to lowercase before the adapter creates/links the user.
+      // Account-linking and admin store provisioning both key off email, and the DB
+      // unique key is case-sensitive — without this a differently-cased address would
+      // create a second user row and orphan a provisioned store. Mirrors the lowercase
+      // we already apply when creating placeholder owners.
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: typeof profile.email === "string" ? profile.email.toLowerCase() : profile.email,
+          image: profile.picture,
+        };
+      },
     }),
   ],
   pages: { signIn: "/signin" },

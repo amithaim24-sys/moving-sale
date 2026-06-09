@@ -191,7 +191,7 @@ export default function ItemForm({
               values.title.trim() ? "" : "pointer-events-none opacity-50"
             }`}
           >
-            🔍 {t("form.findImageOnGoogle", { title: values.title.trim() })}
+            <span aria-hidden="true">🔍</span> {t("form.findImageOnGoogle", { title: values.title.trim() })}
           </a>
           <span className="text-xs text-slate-500">{t("form.findImageHint")}</span>
         </div>

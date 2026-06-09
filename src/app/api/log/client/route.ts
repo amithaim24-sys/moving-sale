@@ -18,6 +18,32 @@ const ALLOWED_EVENTS = new Set([
 
 const ALLOWED_LEVELS = new Set<LogLevel>(["INFO", "WARN", "ERROR"]);
 
+// Largest client telemetry payload we'll accept. Anything bigger is almost
+// certainly abuse, not a real error report; drop it before parsing.
+const MAX_BODY_BYTES = 16_000;
+
+// Explicit allow-list of the client-supplied meta fields we persist, so this
+// endpoint can never be used to write arbitrary structured data into the log
+// table (storage bloat / junk in the admin viewer). String values are clamped;
+// anything not listed here is dropped. These are exactly the keys our own
+// clientLog callers send (whatsapp variant, error digest/stack/source/line/col).
+const META_STRING_KEYS = ["digest", "stack", "source", "variant", "reason"] as const;
+const META_NUMBER_KEYS = ["line", "col"] as const;
+const META_STRING_MAX = 4000;
+
+function sanitizeClientMeta(raw: unknown): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  if (typeof raw !== "object" || raw === null) return out;
+  const m = raw as Record<string, unknown>;
+  for (const k of META_STRING_KEYS) {
+    if (typeof m[k] === "string") out[k] = (m[k] as string).slice(0, META_STRING_MAX);
+  }
+  for (const k of META_NUMBER_KEYS) {
+    if (typeof m[k] === "number" && Number.isFinite(m[k])) out[k] = m[k];
+  }
+  return out;
+}
+
 export async function POST(req: Request) {
   // Browser telemetry should only come from our own pages.
   if (!isSameOrigin(req)) {
@@ -34,7 +60,13 @@ export async function POST(req: Request) {
 
   let body: unknown;
   try {
-    body = await req.json();
+    // Read as text first so we can enforce a hard size cap regardless of whether
+    // the client sent a Content-Length header.
+    const text = await req.text();
+    if (text.length > MAX_BODY_BYTES) {
+      return new NextResponse(null, { status: 204 });
+    }
+    body = JSON.parse(text);
   } catch {
     return new NextResponse(null, { status: 204 });
   }
@@ -65,8 +97,8 @@ export async function POST(req: Request) {
     ip: reqCtx.ip,
     meta: {
       referer: reqCtx.referer,
-      // Keep only a small, known set of client-supplied fields.
-      ...(typeof b.meta === "object" && b.meta ? (b.meta as Record<string, unknown>) : {}),
+      // Only the allow-listed, length-clamped client fields — never the raw object.
+      ...sanitizeClientMeta(b.meta),
     },
   });
 

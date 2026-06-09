@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { revalidateCatalog } from "@/lib/catalog";
 import { isValidSlug, uniqueSlug } from "@/lib/stores";
 import { isOwner } from "@/lib/types";
 
@@ -55,9 +57,6 @@ export async function POST(req: Request) {
   if (existing?.store) {
     return new NextResponse("That user already owns a store", { status: 409 });
   }
-  const ownerId =
-    existing?.id ??
-    (await prisma.user.create({ data: { email: ownerEmail }, select: { id: true } })).id;
 
   // Resolve the slug: use the admin-supplied one (validated) or derive a unique one
   // from the name.
@@ -75,6 +74,12 @@ export async function POST(req: Request) {
 
   try {
     const store = await prisma.$transaction(async (tx) => {
+      // Resolve or pre-provision the owner INSIDE the transaction so a later failure
+      // (e.g. a slug/owner uniqueness race) rolls the placeholder user back too,
+      // rather than leaving an orphaned account behind.
+      const ownerId =
+        existing?.id ??
+        (await tx.user.create({ data: { email: ownerEmail }, select: { id: true } })).id;
       const created = await tx.store.create({
         data: { name, slug, tagline, ownerId },
         select: { id: true, slug: true },
@@ -88,8 +93,16 @@ export async function POST(req: Request) {
       await tx.item.updateMany({ where: { ownerId }, data: { storeId: created.id } });
       return created;
     });
+    // Moving the owner's items out of the root catalog into the new store changes
+    // both feeds — bust the cache for the root site and the new store.
+    revalidateCatalog(null);
+    revalidateCatalog(store.id);
     return NextResponse.json({ id: store.id, slug: store.slug });
-  } catch {
+  } catch (e) {
+    // A uniqueness race past the check-then-act pre-checks (slug or owner) lands here.
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return new NextResponse("That link or owner is already taken", { status: 409 });
+    }
     return new NextResponse("Could not create store", { status: 500 });
   }
 }

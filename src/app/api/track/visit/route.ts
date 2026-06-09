@@ -2,17 +2,24 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { rateLimitBlock } from "@/lib/security";
+import { rateLimitBlock, clientIp, isSameOrigin } from "@/lib/security";
 import { storeSlugFromPath } from "@/lib/stores";
 
 // Beacon endpoint — receives a fire-and-forget POST from VisitTracker on every
-// tab session entry. No CSRF check needed: this endpoint writes only an anonymous
-// analytics row (no state change visible to the caller) and is rate-limited per vid.
+// tab session entry. It writes only an anonymous analytics row (no state change
+// visible to the caller). We require same-origin and rate-limit on BOTH the vid
+// cookie and the client IP, so a scripted client can't bypass the per-visitor cap
+// by sending a fresh random vid on every request and flooding the visits table.
 export async function POST(req: Request) {
+  if (!isSameOrigin(req)) return new NextResponse(null, { status: 204 });
+
   const vid = (await cookies()).get("vid")?.value;
 
-  // Rate-limit per visitor id to prevent a single client from flooding the visits table.
-  const limited = rateLimitBlock(`visit:${vid ?? "anon"}`, 30, 60_000);
+  // The vid bucket throttles a normal visitor; the IP bucket (looser, to tolerate
+  // shared NATs) catches a client that rotates the cookie to dodge the vid bucket.
+  const limited =
+    rateLimitBlock(`visit:${vid ?? "anon"}`, 30, 60_000) ||
+    rateLimitBlock(`visit-ip:${clientIp(req)}`, 120, 60_000);
   if (limited) return limited;
 
   const session = await auth();

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 
 // The fullscreen Lightbox is only needed once a shopper taps a photo, so load
 // its code on demand instead of shipping it in the item page's initial bundle.
@@ -17,6 +18,7 @@ export default function ItemGallery({
   images: GalleryImage[];
   title: string;
 }) {
+  const t = useTranslations("a11y");
   const [activeIdx, setActiveIdx] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -35,7 +37,7 @@ export default function ItemGallery({
       <button
         type="button"
         onClick={() => setLightboxOpen(true)}
-        aria-label="Open photo viewer"
+        aria-label={t("openPhotoViewer")}
         className="group relative block aspect-square w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800"
       >
         <Image
@@ -62,7 +64,7 @@ export default function ItemGallery({
                 key={img.id}
                 type="button"
                 onClick={() => setActiveIdx(i)}
-                aria-label={`Show photo ${i + 1}`}
+                aria-label={t("showPhoto", { n: i + 1 })}
                 className={`relative aspect-square overflow-hidden rounded-lg bg-slate-100 transition dark:bg-slate-800 ${
                   isActive
                     ? "ring-2 ring-brand"

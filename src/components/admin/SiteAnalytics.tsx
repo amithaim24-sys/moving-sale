@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { buildTrend } from "@/lib/analytics";
@@ -6,6 +8,112 @@ import TrendChart from "@/components/charts/TrendChart";
 import CategoryBars from "@/components/charts/CategoryBars";
 import Funnel from "@/components/charts/Funnel";
 import type { Locale } from "@/i18n/config";
+
+// Heavy aggregate fetch for one site, cached in the Data Cache. Dashboard numbers
+// don't need to be real-time, and recomputing ~18 full-table aggregates plus the
+// trend pulls on every admin page view is wasteful, so we cache the locale-
+// independent raw data for 120s (and bust it whenever the catalog is mutated).
+// Trend timestamps are returned as epoch millis (JSON-serializable through the
+// cache); the locale-specific buildTrend formatting happens at render time.
+const getAnalyticsData = (storeId: string | null) =>
+  unstable_cache(
+    async () => {
+      const generatedAt = Date.now();
+      const since30 = new Date(generatedAt - 30 * 24 * 60 * 60 * 1000);
+      const itemWhere = { storeId };
+      const viaItem = { item: { storeId } };
+
+      const [
+        statusRows,
+        typeRows,
+        reducedCount,
+        viewsAgg,
+        loggedViewCount,
+        likeCount,
+        signupCount,
+        memberCount,
+        potentialAgg,
+        soldAgg,
+        totalVisits,
+        uniqueVisitorRows,
+        totalContactClicks,
+        visitsLog,
+        viewsLog,
+        clicksLog,
+        itemsLog,
+        topItems,
+        topClickedItems,
+      ] = await Promise.all([
+        prisma.item.groupBy({ by: ["status"], where: itemWhere, _count: { _all: true } }),
+        prisma.item.groupBy({ by: ["type"], where: itemWhere, _count: { _all: true } }),
+        prisma.item.count({ where: { ...itemWhere, previousPriceIls: { not: null } } }),
+        prisma.item.aggregate({ where: itemWhere, _sum: { viewCount: true }, _count: { _all: true } }),
+        prisma.itemView.count({ where: { ...viaItem, userId: { not: null } } }),
+        prisma.itemLike.count({ where: viaItem }),
+        prisma.giveIfUnsoldSignup.count({ where: viaItem }),
+        storeId ? prisma.storeMembership.count({ where: { storeId } }) : Promise.resolve<number | null>(null),
+        prisma.item.aggregate({ _sum: { priceIls: true }, where: { ...itemWhere, type: "SELL", status: { not: "SOLD" } } }),
+        prisma.item.aggregate({ _sum: { priceIls: true }, where: { ...itemWhere, type: "SELL", status: "SOLD" } }),
+        prisma.visit.count({ where: { storeId } }),
+        // COUNT(DISTINCT) pushed into Postgres returns a single scalar instead of
+        // materializing one row per visitor in app memory.
+        prisma.$queryRaw<{ count: bigint }[]>(
+          storeId === null
+            ? Prisma.sql`SELECT COUNT(DISTINCT "visitorId") AS count FROM "Visit" WHERE "storeId" IS NULL`
+            : Prisma.sql`SELECT COUNT(DISTINCT "visitorId") AS count FROM "Visit" WHERE "storeId" = ${storeId}`,
+        ),
+        prisma.itemClick.count({ where: viaItem }),
+        // Timestamps for the 30-day trend charts (bounded so a busy site can't blow up memory).
+        prisma.visit.findMany({ where: { storeId, createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
+        prisma.itemView.findMany({ where: { ...viaItem, createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
+        prisma.itemClick.findMany({ where: { ...viaItem, createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
+        prisma.item.findMany({ where: { ...itemWhere, createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
+        prisma.item.findMany({
+          where: { ...itemWhere, viewCount: { gt: 0 } },
+          orderBy: { viewCount: "desc" },
+          take: 5,
+          select: { id: true, title: true, viewCount: true },
+        }),
+        prisma.item.findMany({
+          where: { ...itemWhere, clickCount: { gt: 0 } },
+          orderBy: { clickCount: "desc" },
+          take: 5,
+          select: { id: true, title: true, clickCount: true, viewCount: true },
+        }),
+      ]);
+
+      const byStatus: Record<string, number> = {};
+      for (const r of statusRows) byStatus[r.status] = r._count._all;
+      const byType: Record<string, number> = {};
+      for (const r of typeRows) byType[r.type] = r._count._all;
+
+      return {
+        generatedAt,
+        byStatus,
+        byType,
+        reducedCount,
+        itemCount: viewsAgg._count._all,
+        totalViews: viewsAgg._sum.viewCount ?? 0,
+        loggedViewCount,
+        likeCount,
+        signupCount,
+        memberCount,
+        potential: potentialAgg._sum.priceIls ?? 0,
+        realized: soldAgg._sum.priceIls ?? 0,
+        totalVisits,
+        uniqueVisitorCount: Number(uniqueVisitorRows[0]?.count ?? 0),
+        totalContactClicks,
+        visitsLog: visitsLog.map((v) => v.createdAt.getTime()),
+        viewsLog: viewsLog.map((v) => v.createdAt.getTime()),
+        clicksLog: clicksLog.map((v) => v.createdAt.getTime()),
+        itemsLog: itemsLog.map((v) => v.createdAt.getTime()),
+        topItems,
+        topClickedItems,
+      };
+    },
+    ["site-analytics", storeId ?? "root"],
+    { revalidate: 120, tags: ["catalog", `catalog:${storeId ?? "root"}`] },
+  )();
 
 // The full analytics dashboard for ONE website, in isolation. `storeId === null`
 // means the main/root marketplace (Item.storeId IS NULL); a string scopes to that
@@ -23,25 +131,21 @@ export default async function SiteAnalytics({
 }) {
   const t = await getTranslations({ locale, namespace: "admin" });
 
-  const now = Date.now();
-  const since30 = new Date(now - 30 * 24 * 60 * 60 * 1000);
-
-  const itemWhere = { storeId };
-  const viaItem = { item: { storeId } };
-
-  const [
-    statusRows,
-    typeRows,
+  const {
+    generatedAt: now,
+    byStatus,
+    byType,
     reducedCount,
-    viewsAgg,
+    itemCount,
+    totalViews,
     loggedViewCount,
     likeCount,
     signupCount,
     memberCount,
-    potentialAgg,
-    soldAgg,
+    potential,
+    realized,
     totalVisits,
-    uniqueVisitorRows,
+    uniqueVisitorCount,
     totalContactClicks,
     visitsLog,
     viewsLog,
@@ -49,52 +153,13 @@ export default async function SiteAnalytics({
     itemsLog,
     topItems,
     topClickedItems,
-  ] = await Promise.all([
-    prisma.item.groupBy({ by: ["status"], where: itemWhere, _count: { _all: true } }),
-    prisma.item.groupBy({ by: ["type"], where: itemWhere, _count: { _all: true } }),
-    prisma.item.count({ where: { ...itemWhere, previousPriceIls: { not: null } } }),
-    prisma.item.aggregate({ where: itemWhere, _sum: { viewCount: true }, _count: { _all: true } }),
-    prisma.itemView.count({ where: { ...viaItem, userId: { not: null } } }),
-    prisma.itemLike.count({ where: viaItem }),
-    prisma.giveIfUnsoldSignup.count({ where: viaItem }),
-    storeId ? prisma.storeMembership.count({ where: { storeId } }) : Promise.resolve<number | null>(null),
-    prisma.item.aggregate({ _sum: { priceIls: true }, where: { ...itemWhere, type: "SELL", status: { not: "SOLD" } } }),
-    prisma.item.aggregate({ _sum: { priceIls: true }, where: { ...itemWhere, type: "SELL", status: "SOLD" } }),
-    prisma.visit.count({ where: { storeId } }),
-    prisma.visit.groupBy({ by: ["visitorId"], where: { storeId } }),
-    prisma.itemClick.count({ where: viaItem }),
-    // Timestamps for the 30-day trend charts (bounded so a busy site can't blow up memory).
-    prisma.visit.findMany({ where: { storeId, createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
-    prisma.itemView.findMany({ where: { ...viaItem, createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
-    prisma.itemClick.findMany({ where: { ...viaItem, createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
-    prisma.item.findMany({ where: { ...itemWhere, createdAt: { gte: since30 } }, select: { createdAt: true }, take: 10000 }),
-    prisma.item.findMany({
-      where: { ...itemWhere, viewCount: { gt: 0 } },
-      orderBy: { viewCount: "desc" },
-      take: 5,
-      select: { id: true, title: true, viewCount: true },
-    }),
-    prisma.item.findMany({
-      where: { ...itemWhere, clickCount: { gt: 0 } },
-      orderBy: { clickCount: "desc" },
-      take: 5,
-      select: { id: true, title: true, clickCount: true, viewCount: true },
-    }),
-  ]);
+  } = await getAnalyticsData(storeId);
 
-  const byStatus: Record<string, number> = {};
-  for (const r of statusRows) byStatus[r.status] = r._count._all;
-  const byType: Record<string, number> = {};
-  for (const r of typeRows) byType[r.type] = r._count._all;
-
-  const visitsTrend = buildTrend(visitsLog.map((v) => v.createdAt), 30, now, locale);
-  const viewsTrend = buildTrend(viewsLog.map((v) => v.createdAt), 30, now, locale);
-  const clicksTrend = buildTrend(clicksLog.map((v) => v.createdAt), 30, now, locale);
-  const itemsTrend = buildTrend(itemsLog.map((v) => v.createdAt), 30, now, locale);
-
-  const uniqueVisitorCount = uniqueVisitorRows.length;
-  const itemCount = viewsAgg._count._all;
-  const totalViews = viewsAgg._sum.viewCount ?? 0;
+  const toDates = (ms: number[]) => ms.map((m) => new Date(m));
+  const visitsTrend = buildTrend(toDates(visitsLog), 30, now, locale);
+  const viewsTrend = buildTrend(toDates(viewsLog), 30, now, locale);
+  const clicksTrend = buildTrend(toDates(clicksLog), 30, now, locale);
+  const itemsTrend = buildTrend(toDates(itemsLog), 30, now, locale);
 
   const num = (n: number) => n.toLocaleString(locale);
   const num1 = (n: number) => n.toLocaleString(locale, { maximumFractionDigits: 1 });
@@ -132,8 +197,8 @@ export default async function SiteAnalytics({
     {
       title: t("metrics.sectionRevenue"),
       cards: [
-        { label: t("metrics.potentialRevenue"), value: ils(potentialAgg._sum.priceIls ?? 0) },
-        { label: t("metrics.realizedRevenue"), value: ils(soldAgg._sum.priceIls ?? 0) },
+        { label: t("metrics.potentialRevenue"), value: ils(potential) },
+        { label: t("metrics.realizedRevenue"), value: ils(realized) },
       ],
     },
   ];
@@ -223,7 +288,7 @@ export default async function SiteAnalytics({
                   <Link href={itemHref(item.id)} className="min-w-0 flex-1 truncate text-slate-700 hover:underline dark:text-slate-200">
                     {item.title}
                   </Link>
-                  <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400">👁 {num(item.viewCount)}</span>
+                  <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400"><span aria-hidden="true">👁</span> {num(item.viewCount)}</span>
                 </li>
               ))}
             </ol>
@@ -243,7 +308,7 @@ export default async function SiteAnalytics({
                     <Link href={itemHref(item.id)} className="min-w-0 flex-1 truncate text-slate-700 hover:underline dark:text-slate-200">
                       {item.title}
                     </Link>
-                    <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400">🖱 {num(item.clickCount)}</span>
+                    <span className="shrink-0 text-xs text-slate-500 dark:text-slate-400"><span aria-hidden="true">🖱</span> {num(item.clickCount)}</span>
                     <span className="shrink-0 text-xs font-medium text-slate-400">CTR {ctr}</span>
                   </li>
                 );

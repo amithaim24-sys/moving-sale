@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { isPlatformAdmin } from "@/lib/types";
 import { logEvent, requestContext } from "@/lib/eventLog";
 
 // Register the current user's interest in receiving a "give away if unsold" item
@@ -20,14 +21,28 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const { id } = await ctx.params;
   const item = await prisma.item.findUnique({
     where: { id },
-    select: { id: true, ownerId: true, type: true, giveIfUnsold: true, status: true },
+    select: {
+      id: true,
+      ownerId: true,
+      type: true,
+      giveIfUnsold: true,
+      status: true,
+      owner: { select: { banned: true } },
+    },
   });
   if (!item) return new NextResponse("Not found", { status: 404 });
+  const isOwner = item.ownerId === session.user.id;
+  const isAdmin = isPlatformAdmin(session.user.role);
+  // Mirror the public-visibility rules used by like/contact/detail: a non-owner may
+  // only act on a publicly visible (AVAILABLE, non-banned-owner) listing. Without
+  // this, a leaked DRAFT/HIDDEN id could be signed up for — unlike its sibling routes.
+  const visible = isAdmin || isOwner || (!item.owner.banned && item.status === "AVAILABLE");
+  if (!visible) return new NextResponse("Not found", { status: 404 });
   // Only SELL items flagged "give away if unsold" accept signups.
-  if (item.type !== "SELL" || !item.giveIfUnsold || item.status === "HIDDEN") {
+  if (item.type !== "SELL" || !item.giveIfUnsold) {
     return new NextResponse("This item is not accepting signups", { status: 400 });
   }
-  if (item.ownerId === session.user.id) {
+  if (isOwner) {
     return new NextResponse("You can't sign up for your own item", { status: 400 });
   }
 

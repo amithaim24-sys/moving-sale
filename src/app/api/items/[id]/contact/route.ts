@@ -107,12 +107,19 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     return NextResponse.redirect(new URL(`/${locale}/items/${item.id}`, url.origin));
   }
 
-  // Record a high-intent contact click. Both writes are fire-and-forget: errors are
-  // swallowed so analytics failures never block or degrade the buyer hand-off.
-  await Promise.all([
-    prisma.item.update({ where: { id: item.id }, data: { clickCount: { increment: 1 } } }).catch(() => {}),
-    prisma.itemClick.create({ data: { itemId: item.id, userId: session.user.id, kind: "CONTACT" } }).catch(() => {}),
+  // Record a high-intent contact click. Analytics failures must never block or
+  // degrade the buyer hand-off, but we no longer swallow them silently — if the
+  // aggregate clickCount and the ItemClick log diverge, log why so it's debuggable.
+  const clickResults = await Promise.allSettled([
+    prisma.item.update({ where: { id: item.id }, data: { clickCount: { increment: 1 } } }),
+    prisma.itemClick.create({ data: { itemId: item.id, userId: session.user.id, kind: "CONTACT" } }),
   ]);
+  const clickReasons = clickResults
+    .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+    .map((r) => String(r.reason));
+  if (clickReasons.length) {
+    await log("click_count_error", "WARN", session.user.id, { error: clickReasons.join("; ") });
+  }
 
   const itemUrl = `${url.origin}/${locale}/items/${item.id}`;
   const t = await getTranslations({ locale });

@@ -14,9 +14,9 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Role: "USER" | "ADMIN"
+// Role: "USER" | "ADMIN" | "OWNER"
 // ListingType: "SELL" | "GIVE"
-// ListingStatus: "AVAILABLE" | "RESERVED" | "SOLD" | "HIDDEN"
+// ListingStatus: "DRAFT" | "AVAILABLE" | "RESERVED" | "SOLD" | "HIDDEN"
 
 model User {
   id            String    @id @default(cuid())

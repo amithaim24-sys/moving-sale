@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { csrfBlock, rateLimitBlock, clientIp } from "@/lib/security";
 import { logEvent, requestContext } from "@/lib/eventLog";
+
+// Matches the email shape we accept elsewhere (a local part, an @, and a dotted
+// domain) — stricter than a bare "@" check so the leads table isn't flooded with
+// obvious junk addresses.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Public endpoint: a visitor asks to get a copy of this website for themselves.
 // No account is required (most visitors are anonymous), so we identify rate-limit
@@ -11,10 +16,7 @@ export async function POST(req: Request) {
   const blocked = csrfBlock(req);
   if (blocked) return blocked;
 
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    "unknown";
+  const ip = clientIp(req);
   const limited = rateLimitBlock(`website-request:${ip}`, 5, 60_000);
   if (limited) return limited;
 
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
   }
 
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  if (!email || !email.includes("@") || email.length > 200) {
+  if (!email || email.length > 200 || !EMAIL_RE.test(email)) {
     return new NextResponse("A valid email is required", { status: 400 });
   }
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 120) || null : null;

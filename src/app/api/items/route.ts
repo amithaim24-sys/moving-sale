@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { parseItemPayload } from "@/lib/validate";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { revalidateCatalog } from "@/lib/catalog";
 import { logEvent, requestContext } from "@/lib/eventLog";
 
 export async function POST(req: Request) {
@@ -67,8 +67,7 @@ export async function POST(req: Request) {
     // away rather than after the 60s revalidate window. Drafts aren't listed,
     // so they don't need to bust the cache.
     if (status === "AVAILABLE") {
-      revalidateTag("catalog");
-      revalidateTag(`catalog:${storeId ?? "root"}`);
+      revalidateCatalog(storeId);
     }
     const ctx = requestContext(req);
     void logEvent({

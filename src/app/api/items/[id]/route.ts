@@ -6,6 +6,7 @@ import { destroyImage } from "@/lib/cloudinary";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
 import { canEditOwner } from "@/lib/collab";
 import { isPlatformAdmin } from "@/lib/types";
+import { revalidateCatalog } from "@/lib/catalog";
 import { logEvent, requestContext } from "@/lib/eventLog";
 
 // Load an item the caller is allowed to act on. `isFullEditor` is true for the owner
@@ -151,6 +152,10 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   // Best-effort Cloudinary cleanup after the DB commit (destroyImage swallows its own errors).
   await Promise.all(publicIdsToDestroy.map((publicId) => destroyImage(publicId)));
 
+  // Any edit can change what the catalog shows (status →/from AVAILABLE, price,
+  // cover image), so bust the cached feed for this item's store immediately.
+  revalidateCatalog(found.storeId);
+
   const ec = requestContext(req);
   void logEvent({
     event: "item_update",
@@ -198,6 +203,8 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
   // Delete the DB row first; only then drop the images. If this is interrupted the
   // worst case is an orphaned Cloudinary asset, not a broken listing with dead images.
   await Promise.all(found.images.map((img) => destroyImage(img.cloudinaryPublicId)));
+  // Drop the deleted listing from the cached catalog right away.
+  revalidateCatalog(found.storeId);
   const ec = requestContext(req);
   void logEvent({
     event: "item_delete",

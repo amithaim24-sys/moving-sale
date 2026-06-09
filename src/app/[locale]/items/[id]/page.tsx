@@ -1,9 +1,11 @@
 import { cache } from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { after } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
+import { recordView } from "@/lib/views";
 import PriceOrFreeBadge from "@/components/PriceOrFreeBadge";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import GiveIfUnsoldSignupButton from "@/components/GiveIfUnsoldSignupButton";
@@ -94,27 +96,20 @@ export default async function ItemDetailPage({
   // Drafts are owner-only (admins may also view for moderation).
   if (item.status === "DRAFT" && !isOwner && !isAdmin) redirect(`/${locale}`);
 
-  // Count public views (skip owner/admin to keep the metric meaningful) and look up
-  // whether the viewer already liked this item. The two writes/reads are independent,
-  // so run them concurrently rather than back-to-back. The increment is awaited so the
-  // write flushes before the serverless function returns.
+  // Count public views (skip owner/admin to keep the metric meaningful).
   const shouldCountView = !isOwner && !isAdmin && item.status === "AVAILABLE";
   // The "give away if unsold" fallback now collects website signups instead of opening
   // WhatsApp — look up whether this viewer has already signed up.
   const signupEligible = item.type === "SELL" && item.giveIfUnsold;
-  const [, likedRow, signupRow] = await Promise.all([
-    shouldCountView
-      ? Promise.all([
-          // Aggregate counter (includes anonymous visitors).
-          prisma.item
-            .update({ where: { id: item.id }, data: { viewCount: { increment: 1 } } })
-            .catch(() => {}),
-          // Timestamped view event for the analytics trend — recorded for EVERY view.
-          // userId is null for anonymous visitors; the "who viewed what" admin log
-          // filters those out, but the views-over-time chart counts them all.
-          prisma.itemView.create({ data: { itemId: item.id, userId: viewer?.id ?? null } }).catch(() => {}),
-        ])
-      : Promise.resolve(),
+
+  // View counting is a side effect the render doesn't depend on, so defer it until
+  // after the response is sent (Vercel keeps the function alive via waitUntil) rather
+  // than adding two synchronous writes to this hot path.
+  if (shouldCountView) {
+    after(() => recordView(item.id, viewer?.id ?? null));
+  }
+
+  const [likedRow, signupRow] = await Promise.all([
     viewer
       ? prisma.itemLike.findUnique({
           where: { userId_itemId: { userId: viewer.id, itemId: item.id } },
@@ -174,14 +169,14 @@ export default async function ItemDetailPage({
         </p>
         {(isOwner || isAdmin) && (
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            👁 {t("item.viewsCount", { count: item.viewCount })}
+            <span aria-hidden="true">👁</span> {t("item.viewsCount", { count: item.viewCount })}
           </p>
         )}
         {item.description && (
           <p className="whitespace-pre-wrap text-slate-800 dark:text-slate-200">{item.description}</p>
         )}
 
-        <div className="sticky bottom-2 space-y-3 md:static">
+        <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 space-y-3 md:static md:bottom-auto md:z-auto">
           <WhatsAppButton
             itemId={item.id}
             hasPhone={!!item.owner.whatsappPhone}
@@ -193,7 +188,7 @@ export default async function ItemDetailPage({
           {signupEligible && (
             <div className="space-y-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-900/50 dark:bg-emerald-900/20">
               <p className="text-sm text-emerald-800 dark:text-emerald-200">
-                🎁 {t("item.giveIfUnsold.note")}
+                <span aria-hidden="true">🎁</span> {t("item.giveIfUnsold.note")}
               </p>
               {isOwner ? (
                 <Link

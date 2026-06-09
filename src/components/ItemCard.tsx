@@ -69,7 +69,7 @@ export default function ItemCard({
               src={cover}
               alt={item.title}
               fill
-              sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw"
+              sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw"
               className="object-cover transition group-hover:scale-[1.02]"
               priority={priority}
             />
@@ -92,7 +92,7 @@ export default function ItemCard({
           )}
           {showGiveBadge && (
             <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-              🎁 {t("giveIfUnsold.badge")}
+              <span aria-hidden="true">🎁</span> {t("giveIfUnsold.badge")}
             </span>
           )}
         </div>

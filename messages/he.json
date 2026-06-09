@@ -447,6 +447,7 @@
     "nextImage": "תמונה הבאה",
     "imageCounter": "תמונה {current} מתוך {total}",
     "showPhoto": "הצג תמונה {n}",
+    "openPhotoViewer": "פתח מציג תמונות",
     "rotateLeft": "סובב שמאלה",
     "rotateRight": "סובב ימינה",
     "aspectRatio": "יחס גובה-רוחב {ratio}",

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Prisma } from "@prisma/client";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { requireAdmin } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
@@ -33,7 +34,12 @@ export default async function AdminOverviewPage({
     prisma.item.groupBy({ by: ["storeId", "status"], _count: { _all: true } }),
     prisma.item.groupBy({ by: ["storeId", "status"], where: { type: "SELL" }, _sum: { priceIls: true } }),
     prisma.visit.groupBy({ by: ["storeId"], _count: { _all: true } }),
-    prisma.visit.groupBy({ by: ["storeId", "visitorId"], _count: { _all: true } }),
+    // Unique visitors per store via a pushed-down COUNT(DISTINCT) — one row per
+    // store, instead of grouping the whole Visit table by (storeId, visitorId) and
+    // counting rows in JS (which materialized one row per distinct visitor).
+    prisma.$queryRaw<{ storeId: string | null; count: bigint }[]>(
+      Prisma.sql`SELECT "storeId", COUNT(DISTINCT "visitorId") AS count FROM "Visit" GROUP BY "storeId"`,
+    ),
   ]);
 
   // Index every aggregate by storeId (null key = the main/root site).
@@ -63,7 +69,7 @@ export default async function AdminOverviewPage({
   const visitsByStore = new Map<Key, number>();
   for (const r of visitAgg) visitsByStore.set(r.storeId, r._count._all);
   const uniqueByStore = new Map<Key, number>();
-  for (const r of uniqueAgg) uniqueByStore.set(r.storeId, (uniqueByStore.get(r.storeId) ?? 0) + 1);
+  for (const r of uniqueAgg) uniqueByStore.set(r.storeId, Number(r.count));
 
   const num = (n: number) => n.toLocaleString(locale);
   const ils = (n: number) => `₪${n.toLocaleString(locale)}`;
