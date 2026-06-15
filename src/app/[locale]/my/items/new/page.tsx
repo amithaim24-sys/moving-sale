@@ -1,5 +1,5 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { requireUser } from "@/lib/guards";
+import { requireSeller } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import ItemForm from "@/components/ItemForm";
 import type { Locale } from "@/i18n/config";
@@ -12,7 +12,7 @@ export default async function NewItemPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
-  const user = await requireUser();
+  const user = await requireSeller();
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
     select: { whatsappPhone: true },
