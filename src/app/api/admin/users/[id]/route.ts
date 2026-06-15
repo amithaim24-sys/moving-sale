@@ -24,7 +24,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const data: { role?: string; banned?: boolean } = {};
   // Roles grantable via the UI: USER or the delegated ADMIN. OWNER is provisioned via
   // the bootstrap allowlist, never granted through this endpoint.
-  if (body.role === "USER" || body.role === "ADMIN") data.role = body.role;
+  if (body.role === "USER" || body.role === "SELLER" || body.role === "ADMIN") data.role = body.role;
   if (typeof body.banned === "boolean") data.banned = body.banned;
 
   if (Object.keys(data).length === 0) {
@@ -72,7 +72,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   await prisma.user.update({ where: { id }, data });
 
   // Invalidate active sessions when banning or demoting so the change takes effect immediately.
-  if (data.banned === true || data.role === "USER") {
+  if (data.banned === true || data.role === "USER" || data.role === "SELLER") {
     await prisma.session.deleteMany({ where: { userId: id } });
   }
 
