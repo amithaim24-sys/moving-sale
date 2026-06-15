@@ -2,8 +2,9 @@
 // - OWNER: the main owner / super-admin. Full access, incl. bugs/issues (logs),
 //   stores, and site-requests. There is always at least one.
 // - ADMIN: a delegated admin who controls Users, Items and Analytics only.
-// - USER: a normal user.
-export type Role = "USER" | "ADMIN" | "OWNER";
+// - SELLER: can create and edit their own items.
+// - USER: a normal user (buyer). View-only — can like, contact, sign up for give-if-unsold.
+export type Role = "USER" | "SELLER" | "ADMIN" | "OWNER";
 
 // Has elevated platform powers used across the app (view hidden/draft listings,
 // edit/delete any item, contact any seller, see an admin panel). Both the owner and
@@ -15,6 +16,11 @@ export function isPlatformAdmin(role?: string | null): boolean {
 // The main owner / super-admin only (bugs & issues, stores, site-requests).
 export function isOwner(role?: string | null): boolean {
   return role === "OWNER";
+}
+
+// Can create and edit their own items (SELLER, ADMIN, or OWNER).
+export function isSeller(role?: string | null): boolean {
+  return role === "SELLER" || role === "ADMIN" || role === "OWNER";
 }
 
 // Admin sections and who may access each. Owner sees all; a delegated admin sees
