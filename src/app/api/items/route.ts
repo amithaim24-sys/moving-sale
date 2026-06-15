@@ -5,6 +5,7 @@ import { parseItemPayload } from "@/lib/validate";
 import { csrfBlock, rateLimitBlock } from "@/lib/security";
 import { revalidateCatalog } from "@/lib/catalog";
 import { logEvent, requestContext } from "@/lib/eventLog";
+import { isSeller } from "@/lib/types";
 
 export async function POST(req: Request) {
   const blocked = csrfBlock(req);
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
     select: { whatsappPhone: true, banned: true, store: { select: { id: true } } },
   });
   if (!me || me.banned || session.user.banned) return new NextResponse("Forbidden", { status: 403 });
+  if (!isSeller(session.user.role)) return new NextResponse("Forbidden", { status: 403 });
 
   // A store owner's items are filed into their own store's catalog; everyone else's
   // land in the root catalog (storeId = null). This is what isolates each white-label
