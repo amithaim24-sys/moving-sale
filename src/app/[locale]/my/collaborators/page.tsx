@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { requireUser } from "@/lib/guards";
+import { requireSeller } from "@/lib/guards";
 import { prisma } from "@/lib/prisma";
 import CollaboratorsManager from "./CollaboratorsManager";
 import type { Locale } from "@/i18n/config";
@@ -12,7 +12,7 @@ export default async function CollaboratorsPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations();
-  const user = await requireUser();
+  const user = await requireSeller();
 
   const rows = await prisma.collaborator.findMany({
     where: { ownerId: user.id },
