@@ -14,7 +14,7 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Role: "USER" | "ADMIN" | "OWNER"
+// Role: "USER" | "SELLER" | "ADMIN" | "OWNER"
 // ListingType: "SELL" | "GIVE"
 // ListingStatus: "DRAFT" | "AVAILABLE" | "RESERVED" | "SOLD" | "HIDDEN"
 
