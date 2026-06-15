@@ -7,6 +7,7 @@ import { getCollaboratorOwnerIds } from "@/lib/collab";
 import { getOwnedStore } from "@/lib/stores";
 import { absoluteUrl } from "@/lib/url";
 import { prisma } from "@/lib/prisma";
+import { isSeller } from "@/lib/types";
 import PriceOrFreeBadge from "@/components/PriceOrFreeBadge";
 import StoreShareButton from "@/components/StoreShareButton";
 import MyItemActions from "./MyItemActions";
@@ -42,6 +43,7 @@ export default async function MyItemsPage({
   setRequestLocale(locale);
   const t = await getTranslations();
   const user = await requireUser();
+  const userIsSeller = isSeller(user.role);
 
   const [collabOwnerIds, ownedStore] = await Promise.all([
     getCollaboratorOwnerIds(user.id),
@@ -105,12 +107,16 @@ export default async function MyItemsPage({
         <h1 className="text-2xl font-bold">{t("nav.myItems")}</h1>
         <div className="flex items-center gap-2">
           {ownedStore && storeUrl && <StoreShareButton url={storeUrl} />}
-          <Link href={`/${locale}/my/collaborators`} className="btn-secondary text-sm">
-            {t("collab.manage")}
-          </Link>
-          <Link href={`/${locale}/my/items/new`} className="btn-primary text-sm">
-            + {t("nav.newItem")}
-          </Link>
+          {userIsSeller && (
+            <Link href={`/${locale}/my/collaborators`} className="btn-secondary text-sm">
+              {t("collab.manage")}
+            </Link>
+          )}
+          {userIsSeller && (
+            <Link href={`/${locale}/my/items/new`} className="btn-primary text-sm">
+              + {t("nav.newItem")}
+            </Link>
+          )}
         </div>
       </div>
       {sellItems.length > 0 && (
