@@ -40,8 +40,17 @@ export default async function AdminUsersPage({
               <AdminUserRow
                 key={u.id}
                 viewerIsOwner={viewerIsOwner}
-                user={{ id: u.id, name: u.name, email: u.email, role: u.role as "USER" | "ADMIN" | "OWNER", banned: u.banned, itemCount: u._count.items }}
-                labels={{ promote: t("promote"), demote: t("demote"), ban: t("ban"), unban: t("unban"), owner: t("ownerBadge") }}
+                user={{ id: u.id, name: u.name, email: u.email, role: u.role as "USER" | "SELLER" | "ADMIN" | "OWNER", banned: u.banned, itemCount: u._count.items }}
+                labels={{
+                  promote: t("promote"),
+                  demote: t("demote"),
+                  makeSeller: t("makeSeller"),
+                  makeBuyer: t("makeBuyer"),
+                  ban: t("ban"),
+                  unban: t("unban"),
+                  owner: t("ownerBadge"),
+                  sellerBadge: t("sellerBadge"),
+                }}
               />
             ))}
           </tbody>

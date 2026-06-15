@@ -8,9 +8,25 @@ export default function AdminUserRow({
   viewerIsOwner,
   labels,
 }: {
-  user: { id: string; name: string | null; email: string; role: "USER" | "ADMIN" | "OWNER"; banned: boolean; itemCount: number };
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    role: "USER" | "SELLER" | "ADMIN" | "OWNER";
+    banned: boolean;
+    itemCount: number;
+  };
   viewerIsOwner: boolean;
-  labels: { promote: string; demote: string; ban: string; unban: string; owner: string };
+  labels: {
+    promote: string;
+    demote: string;
+    makeSeller: string;
+    makeBuyer: string;
+    ban: string;
+    unban: string;
+    owner: string;
+    sellerBadge: string;
+  };
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -27,39 +43,77 @@ export default function AdminUserRow({
   }
 
   const isOwnerRow = user.role === "OWNER";
-  // Only the owner can change roles, and never the owner role itself (owners are set
-  // via the bootstrap allowlist). A delegated admin can ban non-owners only.
+  // Only the owner can change roles, and never the owner role itself.
   const canChangeRole = viewerIsOwner && !isOwnerRow;
   const canBan = viewerIsOwner || !isOwnerRow;
-  const roleLabel = isOwnerRow ? labels.owner : user.role;
+
+  const roleBadgeClass =
+    isOwnerRow
+      ? "bg-amber-500 text-white"
+      : user.role === "ADMIN"
+        ? "bg-brand text-white"
+        : user.role === "SELLER"
+          ? "bg-emerald-600 text-white"
+          : "bg-slate-200";
+
+  const roleLabel =
+    isOwnerRow
+      ? labels.owner
+      : user.role === "SELLER"
+        ? labels.sellerBadge
+        : user.role;
 
   return (
     <tr className="border-t">
       <td className="px-3 py-2">{user.email}</td>
       <td className="px-3 py-2">{user.name ?? "—"}</td>
       <td className="px-3 py-2">
-        <span
-          className={`rounded px-2 py-0.5 text-xs ${
-            isOwnerRow
-              ? "bg-amber-500 text-white"
-              : user.role === "ADMIN"
-                ? "bg-brand text-white"
-                : "bg-slate-200"
-          }`}
-        >
+        <span className={`rounded px-2 py-0.5 text-xs ${roleBadgeClass}`}>
           {roleLabel}
         </span>
-        {user.banned && <span className="ms-2 rounded bg-red-200 px-2 py-0.5 text-xs">banned</span>}
+        {user.banned && (
+          <span className="ms-2 rounded bg-red-200 px-2 py-0.5 text-xs">banned</span>
+        )}
       </td>
       <td className="px-3 py-2">{user.itemCount}</td>
       <td className="px-3 py-2 space-x-2 space-y-1">
-        {canChangeRole && (
+        {/* USER → make them a Seller */}
+        {canChangeRole && user.role === "USER" && (
           <button
             disabled={busy}
-            onClick={() => update({ role: user.role === "ADMIN" ? "USER" : "ADMIN" })}
+            onClick={() => update({ role: "SELLER" })}
             className="btn-secondary text-xs"
           >
-            {user.role === "ADMIN" ? labels.demote : labels.promote}
+            {labels.makeSeller}
+          </button>
+        )}
+        {/* SELLER → promote to Admin OR demote to Buyer */}
+        {canChangeRole && user.role === "SELLER" && (
+          <>
+            <button
+              disabled={busy}
+              onClick={() => update({ role: "ADMIN" })}
+              className="btn-secondary text-xs"
+            >
+              {labels.promote}
+            </button>
+            <button
+              disabled={busy}
+              onClick={() => update({ role: "USER" })}
+              className="btn-secondary text-xs"
+            >
+              {labels.makeBuyer}
+            </button>
+          </>
+        )}
+        {/* ADMIN → demote to Seller */}
+        {canChangeRole && user.role === "ADMIN" && (
+          <button
+            disabled={busy}
+            onClick={() => update({ role: "SELLER" })}
+            className="btn-secondary text-xs"
+          >
+            {labels.demote}
           </button>
         )}
         {canBan && (
