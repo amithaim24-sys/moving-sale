@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "./auth";
 import { prisma } from "./prisma";
-import { isOwner, isPlatformAdmin } from "./types";
+import { isOwner, isPlatformAdmin, isSeller } from "./types";
 import { defaultLocale, locales, type Locale } from "@/i18n/config";
 
 // Dedupe the session lookup within a single request — layout, header, and the page
@@ -34,6 +34,17 @@ export async function requireUser() {
 export async function requireAdmin() {
   const user = await requireUser();
   if (!isPlatformAdmin(user.role)) {
+    const locale = await currentLocale();
+    redirect(`/${locale}`);
+  }
+  return user;
+}
+
+// Can create/edit own items (SELLER, ADMIN, or OWNER). Gates /my/items/new
+// and /my/collaborators.
+export async function requireSeller() {
+  const user = await requireUser();
+  if (!isSeller(user.role)) {
     const locale = await currentLocale();
     redirect(`/${locale}`);
   }
