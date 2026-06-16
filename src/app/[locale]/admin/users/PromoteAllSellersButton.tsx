@@ -40,7 +40,7 @@ export default function PromoteAllSellersButton() {
         </span>
       )}
       {error && (
-        <span className="text-sm text-red-600">Error — please try again.</span>
+        <span className="text-sm text-red-600">{t("makeAllSellersError")}</span>
       )}
     </div>
   );
