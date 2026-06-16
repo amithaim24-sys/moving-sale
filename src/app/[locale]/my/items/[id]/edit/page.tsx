@@ -5,7 +5,7 @@ import { canEditOwner } from "@/lib/collab";
 import { prisma } from "@/lib/prisma";
 import ItemForm from "@/components/ItemForm";
 import type { Locale } from "@/i18n/config";
-import { isPlatformAdmin, type ItemCategory, type ItemCondition, type ListingStatus, type ListingType } from "@/lib/types";
+import { isPlatformAdmin, isSeller, type ItemCategory, type ItemCondition, type ListingStatus, type ListingType } from "@/lib/types";
 
 export default async function EditItemPage({
   params,
@@ -23,7 +23,9 @@ export default async function EditItemPage({
   });
   if (!item) notFound();
   // Owners and the collaborators they invited may edit; admins may also reach it.
-  const mayEdit = (await canEditOwner(user.id, item.ownerId)) || isPlatformAdmin(user.role);
+  const isOwner = user.id === item.ownerId;
+  const isCollabOrOwner = await canEditOwner(user.id, item.ownerId);
+  const mayEdit = isPlatformAdmin(user.role) || (isCollabOrOwner && (!isOwner || isSeller(user.role)));
   if (!mayEdit) redirect(`/${locale}`);
 
   // A WhatsApp number is required to publish (the API silently downgrades to DRAFT
