@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { csrfBlock, rateLimitBlock } from "@/lib/security";
+import { csrfBlock, rateLimitBlockDurable } from "@/lib/security";
 import { isOwner } from "@/lib/types";
 
 export async function POST(req: Request) {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   if (!session?.user || !isOwner(session.user.role) || session.user.banned)
     return new NextResponse("Forbidden", { status: 403 });
 
-  const limited = rateLimitBlock(`admin-promote-all:${session.user.id}`, 5, 60_000);
+  const limited = await rateLimitBlockDurable(`admin-promote-all:${session.user.id}`, 5, 60_000);
   if (limited) return limited;
 
   // Collect IDs first so we can precisely invalidate only the promoted users' sessions.
