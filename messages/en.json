@@ -232,6 +232,8 @@
     "makeAllSellersConfirm": "This will promote all buyers to Seller. Continue?",
     "makeAllSellersDone": "{count} users promoted to Seller",
     "makeAllSellersError": "Error — please try again.",
+    "makeAllSellersDialogTitle": "This cannot be undone",
+    "makeAllSellersCancel": "Cancel",
     "hide": "Hide",
     "show": "Show",
     "itemStore": "In store: {store}",

@@ -232,6 +232,8 @@
     "makeAllSellersConfirm": "פעולה זו תהפוך את כל הקונים למוכרים. להמשיך?",
     "makeAllSellersDone": "{count} משתמשים הפכו למוכרים",
     "makeAllSellersError": "שגיאה — אנא נסו שנית.",
+    "makeAllSellersDialogTitle": "פעולה זו אינה הפיכה",
+    "makeAllSellersCancel": "ביטול",
     "hide": "הסתר",
     "show": "הצג",
     "itemStore": "בחנות: {store}",
