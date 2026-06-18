@@ -237,6 +237,8 @@
     "hide": "Hide",
     "show": "Show",
     "itemStore": "In store: {store}",
+    "itemCreatedAt": "Created: {date}",
+    "itemUpdatedAt": "Modified: {date}",
     "overview": {
       "title": "Websites",
       "subtitle": "Each website's analytics, kept separate. Open one to see its full report.",

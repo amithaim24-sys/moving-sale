@@ -24,6 +24,8 @@ export default async function AdminItemsPage({
       title: true,
       status: true,
       viewCount: true,
+      createdAt: true,
+      updatedAt: true,
       images: { take: 1, orderBy: { sortOrder: "asc" }, select: { url: true } },
       owner: { select: { email: true, name: true } },
       // Which white-label store this item lives in. `null` = the original root
@@ -68,6 +70,23 @@ export default async function AdminItemsPage({
               <div className="text-xs text-slate-500">
                 {item.owner.email} · {t(`item.status.${item.status as "AVAILABLE"}`)}
                 {" · "}👁 {t("item.viewsCount", { count: item.viewCount })}
+              </div>
+              <div className="text-xs text-slate-400 dark:text-slate-500">
+                {t("admin.itemCreatedAt", {
+                  date: item.createdAt.toLocaleDateString(locale, {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  }),
+                })}
+                {" · "}
+                {t("admin.itemUpdatedAt", {
+                  date: item.updatedAt.toLocaleDateString(locale, {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  }),
+                })}
               </div>
             </div>
             <AdminItemActions
